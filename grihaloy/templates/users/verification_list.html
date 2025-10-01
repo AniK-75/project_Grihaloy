@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Verification Documents</h2>
+  <a href="{% url 'users:verification_create' %}">Upload new document</a>
+  <ul>
+    {% for d in docs %}
+      <li>
+        <a href="{{ d.doc.url }}">{{ d.doc.name }}</a> - {{ d.status }}
+        {% if request.user == d.user or request.user.role == 'ADMIN' %}
+          <a href="{% url 'users:verification_delete' d.pk %}">Delete</a>
+        {% endif %}
+        {% if request.user.role == 'ADMIN' %}
+          <a href="{% url 'users:verification_change_status' d.pk 'APPROVED' %}">Approve</a>
+          <a href="{% url 'users:verification_change_status' d.pk 'REJECTED' %}">Reject</a>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No documents found.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

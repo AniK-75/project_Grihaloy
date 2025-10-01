@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Ratings</h2>
+  <ul>
+    {% for r in ratings %}
+      <li>{{ r.score }} — {{ r.review }} — by {{ r.rater.username }} on {{ r.created_at }}</li>
+    {% empty %}
+      <li>No ratings yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
