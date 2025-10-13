@@ -8,6 +8,8 @@ urlpatterns = [
     path("", include(("users.urls", "users"), namespace="users")),
     # add your app home urls here as well, e.g.:
     # path('', include('home.urls')),
+    path('trends/', include('price_trends.urls')),
+    path('heatmap/', include('heatmap_services.urls')),
 ]
 
 if settings.DEBUG:

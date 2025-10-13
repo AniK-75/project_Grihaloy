@@ -33,6 +33,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'users',
+    'price_trends',
+    'heatmap_services',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
