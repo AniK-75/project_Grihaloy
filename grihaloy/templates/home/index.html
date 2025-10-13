@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>🏠 Welcome to Grihaloy</h2>
-<p>This is the central hub for all users.</p>
+<p>Grihaloy makes renting easy in Bangladesh.</p>
 
 {% if user.is_authenticated %}
   <p>Hello {{ user.username }} ({{ user.role }})!</p>
   <p><a href="{% url 'users:verification_list' %}">My Documents</a></p>
-  <p><a href="{% url 'users:logout' %}">Logout</a></p>
-{% else %}
-  <p><a href="{% url 'users:login' %}">Login</a></p>
-  <p><a href="{% url 'users:register' %}">Register</a></p>
+
+
 {% endif %}
 {% endblock %}
