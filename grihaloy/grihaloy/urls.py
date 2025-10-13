@@ -5,9 +5,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", include(("users.urls", "users"), namespace="users")),
-    # add your app home urls here as well, e.g.:
-    # path('', include('home.urls')),
+
+    # 👇 Homepage (newly created app)
+    path('', include(('home.urls', 'home'), namespace='home')),
+
+    # 👇 Users app
+    path('users/', include(('users.urls', 'users'), namespace='users')),
 ]
 
 if settings.DEBUG:
