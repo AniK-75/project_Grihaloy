@@ -3,23 +3,28 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, VerificationDocumentForm, RatingForm
+from .forms import CustomUserCreationForm, UserUpdateForm, VerificationDocumentForm, \
+    RatingForm  # <-- Added UserUpdateForm
 from .models import VerificationDocument, Rating, CustomUser
+
 
 def register_user(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        # --- MODIFIED: Handle file uploads (request.FILES) ---
+        form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, "Registration successful.")
-            return redirect('home:index')  # change to your homepage URL name
+            messages.success(request, "Registration successful. Your account is pending admin approval.")
+            return redirect('home:index')
         else:
             messages.error(request, "Please correct errors below.")
     else:
         form = CustomUserCreationForm()
     return render(request, 'users/register.html', {'form': form})
 
+
+# --- No changes to login_user or logout_user ---
 def login_user(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -33,12 +38,65 @@ def login_user(request):
         form = AuthenticationForm()
     return render(request, 'users/login.html', {'form': form})
 
+
 @login_required
 def logout_user(request):
     logout(request)
     return redirect('home:index')
 
-# VerificationDocument views
+
+# --- NEW: Profile Views ---
+
+@login_required
+def profile_detail(request, username):
+    profile_user = get_object_or_404(CustomUser, username=username)
+    # You can add more context here, like user's ratings or properties
+    return render(request, 'users/profile_detail.html', {'profile_user': profile_user})
+
+
+@login_required
+def profile_edit(request):
+    if not request.user.is_approved:
+        messages.error(request, "Your account is not approved yet. You cannot edit your profile.")
+        return redirect('users:profile_detail', username=request.user.username)
+
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('users:profile_detail', username=request.user.username)
+    else:
+        form = UserUpdateForm(instance=request.user)
+    return render(request, 'users/profile_edit.html', {'form': form})
+
+
+# --- NEW: Admin Views ---
+
+@login_required
+def user_list(request):
+    if not (request.user.role == 'ADMIN' or request.user.is_superuser):
+        messages.error(request, "You do not have permission to view this page.")
+        return redirect('home:index')
+
+    users = CustomUser.objects.all().order_by('username')
+    return render(request, 'users/user_list.html', {'users': users})
+
+
+@login_required
+def approve_user(request, pk):
+    if not (request.user.role == 'ADMIN' or request.user.is_superuser):
+        messages.error(request, "You do not have permission to perform this action.")
+        return redirect('home:index')
+
+    user_to_approve = get_object_or_404(CustomUser, pk=pk)
+    user_to_approve.is_approved = True
+    user_to_approve.save()
+    messages.success(request, f"User '{user_to_approve.username}' has been approved.")
+    return redirect('users:user_list')
+
+
+# --- No changes to VerificationDocument or Rating views ---
 @login_required
 def verification_list(request):
     if request.user.role == 'ADMIN' or request.user.is_superuser:
@@ -46,6 +104,7 @@ def verification_list(request):
     else:
         docs = request.user.verification_docs.all().order_by('-created_at')
     return render(request, 'users/verification_list.html', {'docs': docs})
+
 
 @login_required
 def verification_create(request):
@@ -61,6 +120,7 @@ def verification_create(request):
         form = VerificationDocumentForm()
     return render(request, 'users/verification_form.html', {'form': form})
 
+
 @login_required
 def verification_delete(request, pk):
     doc = get_object_or_404(VerificationDocument, pk=pk)
@@ -71,7 +131,7 @@ def verification_delete(request, pk):
     messages.success(request, "Document deleted.")
     return redirect('users:verification_list')
 
-# Admin approves/rejects (simple example)
+
 @login_required
 def verification_change_status(request, pk, status):
     if not (request.user.role == 'ADMIN' or request.user.is_superuser):
@@ -84,7 +144,7 @@ def verification_change_status(request, pk, status):
         messages.success(request, f"Status set to {status}.")
     return redirect('users:verification_list')
 
-# Ratings
+
 @login_required
 def rating_list(request, user_id=None):
     if user_id:
@@ -92,6 +152,7 @@ def rating_list(request, user_id=None):
     else:
         ratings = request.user.given_ratings.all().order_by('-created_at')
     return render(request, 'users/rating_list.html', {'ratings': ratings})
+
 
 @login_required
 def rating_create(request, rated_id):

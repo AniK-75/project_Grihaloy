@@ -1,21 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Verification Documents</h2>
-  <a href="{% url 'users:verification_create' %}">Upload new document</a>
-  <ul>
-    {% for d in docs %}
-      <li>
-        <a href="{{ d.doc.url }}">{{ d.doc.name }}</a> - {{ d.status }}
-        {% if request.user == d.user or request.user.role == 'ADMIN' %}
-          <a href="{% url 'users:verification_delete' d.pk %}">Delete</a>
-        {% endif %}
-        {% if request.user.role == 'ADMIN' %}
-          <a href="{% url 'users:verification_change_status' d.pk 'APPROVED' %}">Approve</a>
-          <a href="{% url 'users:verification_change_status' d.pk 'REJECTED' %}">Reject</a>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li>No documents found.</li>
-    {% endfor %}
-  </ul>
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 flex-wrap">
+    <h3 class="mb-0 text-brown me-3">My Verification Documents</h3>
+    <a href="{% url 'users:verification_create' %}" class="btn btn-accent mt-2 mt-md-0">Upload New Document</a>
+  </div>
+  <div class="card-body">
+    {% if docs %}
+      <ul class="list-group list-group-flush">
+        {% for d in docs %}
+          <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap px-1 py-3">
+            <div class="me-auto my-1">
+              <a href="{{ d.doc.url }}" class="fw-bold text-decoration-none text-brown">{{ d.doc.name }}</a>
+              <span class="ms-3">
+                {% if d.status == 'APPROVED' %}
+                  <span class="badge rounded-pill bg-success">Approved</span>
+                {% elif d.status == 'REJECTED' %}
+                  <span class="badge rounded-pill bg-danger">Rejected</span>
+                {% else %}
+                  <span class="badge rounded-pill bg-warning text-dark">Pending</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="my-1">
+              {% if request.user.role == 'ADMIN' %}
+                <a href="{% url 'users:verification_change_status' d.pk 'APPROVED' %}" class="btn btn-sm btn-outline-success me-1">Approve</a>
+                <a href="{% url 'users:verification_change_status' d.pk 'REJECTED' %}" class="btn btn-sm btn-outline-warning me-1">Reject</a>
+              {% endif %}
+              {% if request.user == d.user or request.user.role == 'ADMIN' %}
+                <a href="{% url 'users:verification_delete' d.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="text-center py-5">
+        <h4 class="text-muted">No Documents Found</h4>
+        <p class="text-muted">Looks like you haven't uploaded any documents yet.</p>
+        <p>Click the button above to get started!</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
