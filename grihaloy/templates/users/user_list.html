@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-white py-3">
+    <h3 class="mb-0 text-brown">Manage Users</h3>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Profile</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <a href="{% url 'users:profile_detail' username=u.username %}">
+                <img src="{{ u.profile_picture.url }}" alt="{{ u.username }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+              </a>
+            </td>
+            <td><a href="{% url 'users:profile_detail' username=u.username %}" class="text-decoration-none text-brown fw-bold">{{ u.username }}</a></td>
+            <td>{{ u.role }}</td>
+            <td>
+              {% if u.is_approved %}
+                <span class="badge bg-success">Approved</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if not u.is_approved %}
+                <a href="{% url 'users:approve_user' pk=u.pk %}" class="btn btn-sm btn-outline-success">Approve</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

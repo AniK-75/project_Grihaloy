@@ -1,10 +1,109 @@
 {% extends "base.html" %}
-
 {% block content %}
-  <h2>Register</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-  </form>
+{% load static %}
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-panel auth-image-panel">
+      <div class="auth-image-content">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 50px; margin-bottom: 1rem; filter: brightness(0) invert(1);">
+        <h2 class="h4">Join Our Community</h2>
+        <p class="text-white-50 small">Create an account to start finding verified properties and tenants today.</p>
+      </div>
+    </div>
+    <div class="auth-panel auth-form-panel">
+      <div class="w-100">
+        <h3 class="mb-4 text-center text-brown">Create an Account</h3>
+        <!-- MODIFIED: Added enctype for file uploads -->
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-brown w-100 mt-3">Register</button>
+        </form>
+        <p class="text-center mt-4 text-muted small">
+          Already have an account? <a href="{% url 'users:login' %}" class="link-accent">Login</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 75vh;
+  }
+  .auth-card {
+    display: flex;
+    width: 100%;
+    max-width: 950px;
+    background-color: var(--cream);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+  }
+  .auth-panel {
+    padding: 3rem;
+    width: 50%;
+  }
+  .auth-image-panel {
+    background: linear-gradient(135deg, var(--brown-dark), var(--brown));
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .auth-form-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .auth-form-panel form p { margin-bottom: 1.25rem; }
+  .auth-form-panel form ul {
+      padding-left: 1.2rem;
+      font-size: 0.8rem;
+      color: #6c757d;
+  }
+  .auth-form-panel form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+  }
+  .auth-form-panel form input,
+  .auth-form-panel form select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .auth-form-panel form input:focus,
+  .auth-form-panel form select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(199, 156, 109, 0.2);
+    background-color: #fff;
+  }
+  .link-accent {
+    color: var(--accent-color);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .link-accent:hover {
+    color: var(--brown);
+    text-decoration: underline;
+  }
+  @media (max-width: 768px) {
+    .auth-card { flex-direction: column; }
+    .auth-panel { width: 100%; padding: 2rem; }
+    .auth-image-panel { display: none; }
+  }
+</style>
 {% endblock %}

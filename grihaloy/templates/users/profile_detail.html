@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-5">
+        <div class="row align-items-center">
+          <!-- Profile Picture -->
+          <div class="col-md-4 text-center">
+            <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.username }}" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--accent-color);">
+          </div>
+          <!-- Profile Info -->
+          <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+              <h2 class="mb-0 text-brown me-3">{{ profile_user.username }}</h2>
+              <span class="badge rounded-pill" style="background-color: var(--brown); color: white;">{{ profile_user.role }}</span>
+            </div>
+            <p class="text-muted"><a href="mailto:{{ profile_user.email }}" class="text-muted text-decoration-none">{{ profile_user.email }}</a></p>
+            <p class="text-muted">Phone: {{ profile_user.phone|default:"Not provided" }}</p>
+            
+            {% if profile_user.is_approved %}
+              <p><span class="badge bg-success">Account Approved</span></p>
+            {% else %}
+              <p><span class="badge bg-warning text-dark">Pending Approval</span></p>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            {% if request.user == profile_user %}
+              <a href="{% url 'users:profile_edit' %}" class="btn btn-accent mt-2">Edit Profile</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

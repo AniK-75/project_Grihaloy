@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 
+
 class CustomUser(AbstractUser):
     RENTER = 'RENTER'
     LANDLORD = 'LANDLORD'
@@ -14,9 +15,15 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=RENTER)
     phone = models.CharField(max_length=20, blank=True, null=True)
 
+    # --- NEW FIELDS ---
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.png')
+    is_approved = models.BooleanField(default=False, help_text='Set to true when the user is approved by an admin.')
+
     def __str__(self):
         return f"{self.username} ({self.role})"
 
+
+# --- NO CHANGES TO OTHER MODELS ---
 class VerificationDocument(models.Model):
     PENDING = 'PENDING'
     APPROVED = 'APPROVED'
@@ -26,7 +33,6 @@ class VerificationDocument(models.Model):
         (APPROVED, 'Approved'),
         (REJECTED, 'Rejected'),
     ]
-
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='verification_docs')
     doc = models.FileField(upload_to='verification_docs/')
     doc_type = models.CharField(max_length=120, blank=True, help_text="e.g., NID, Passport")
@@ -36,6 +42,7 @@ class VerificationDocument(models.Model):
 
     def __str__(self):
         return f"Doc {self.pk} for {self.user.username} - {self.status}"
+
 
 class Rating(models.Model):
     rater = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='given_ratings')
