@@ -14,9 +14,11 @@ db.sqlite3
 .env
 
 # --- FINAL MEDIA/UPLOAD FIX ---
+
 # 1. IGNORE the entire /media/ directory and everything inside it.
+# This IGNORES all folders like profile_pics/ and verification_docs/.
 /grihaloy/media/*
 
-# 2. EXCEPTION: UN-IGNORE the sub-directory where default images are kept.
-# (This allows us to commit the directory and the default.png file)
-!/grihaloy/media/images/
+# 2. EXCEPTION: UN-IGNORE the specific default file we want to track.
+# This is the single file that will be committed to Git.
+!/grihaloy/media/default.png

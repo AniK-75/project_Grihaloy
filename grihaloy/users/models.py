@@ -14,7 +14,7 @@ class CustomUser(AbstractUser):
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=RENTER)
     phone = models.CharField(max_length=20, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', default='images/default.png')
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='/default.png')
     is_approved = models.BooleanField(default=False, help_text='Set to true when the user is approved by an admin.')
 
     # --- NEW FIELD FOR THE VERIFIED BADGE ---
