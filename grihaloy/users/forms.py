@@ -1,24 +1,29 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser, VerificationDocument, Rating
 
-class CustomUserCreationForm(UserCreationForm):
-    # --- ADDED PROFILE PICTURE FIELD ---
-    profile_picture = forms.ImageField(required=False, help_text='Optional. Choose a profile picture.')
+# This is the widget needed to fix the ugly file input
+from django.forms.widgets import ClearableFileInput
 
+class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        # --- ADDED 'profile_picture' TO FIELDS ---
-        fields = ('username', 'email', 'profile_picture', 'role', 'phone', 'password1', 'password2')
+        fields = ('username', 'email', 'profile_picture', 'role', 'phone')
 
-# --- NEW FORM FOR PROFILE EDITING ---
-class UserUpdateForm(forms.ModelForm):
+# This is the form for editing a user's profile, now correctly named
+class ProfileEditForm(UserChangeForm):
+    # We remove the password fields so users can't change passwords here
+    password = None
+
     class Meta:
         model = CustomUser
         fields = ('username', 'email', 'phone', 'profile_picture')
 
+        # THIS IS THE FIX: This widget removes the "Currently:..." text
+        widgets = {
+            'profile_picture': ClearableFileInput(),
+        }
 
-# --- NO CHANGES TO OTHER FORMS ---
 class VerificationDocumentForm(forms.ModelForm):
     class Meta:
         model = VerificationDocument

@@ -2,7 +2,14 @@
 {% block content %}
 <div class="card shadow-sm border-0">
   <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 flex-wrap">
-    <h3 class="mb-0 text-brown me-3">My Verification Documents</h3>
+    <h3 class="mb-0 text-brown me-3">
+      {# --- NEW: Dynamic Page Title --- #}
+      {% if request.user.role == 'ADMIN' %}
+        KYC Approval Queue
+      {% else %}
+        My Submitted KYCs
+      {% endif %}
+    </h3>
     <a href="{% url 'users:verification_create' %}" class="btn btn-accent mt-2 mt-md-0">Upload New Document</a>
   </div>
   <div class="card-body">

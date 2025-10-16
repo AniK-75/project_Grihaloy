@@ -13,7 +13,6 @@
     <div class="auth-panel auth-form-panel">
       <div class="w-100">
         <h3 class="mb-4 text-center text-brown">Create an Account</h3>
-        <!-- MODIFIED: Added enctype for file uploads -->
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {{ form.as_p }}
@@ -90,6 +89,29 @@
     box-shadow: 0 0 0 4px rgba(199, 156, 109, 0.2);
     background-color: #fff;
   }
+
+  /* --- THIS IS THE FIX FOR THE BUTTON --- */
+  .auth-form-panel form input[type="file"] {
+    padding: 0; /* Reset padding for the container */
+  }
+  .auth-form-panel form input[type="file"]::file-selector-button {
+    background-color: #322c2b; /* <-- YOUR NEW COLOR */
+    color: white; /* <-- Changed text color for contrast */
+    font-weight: 500;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    height: 46px; /* Match the inner height of other inputs */
+    border-radius: 4px; /* Makes it "squarer" */
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin-right: 1rem;
+  }
+  .auth-form-panel form input[type="file"]::file-selector-button:hover {
+    background-color: var(--accent-color); /* Kept the accent color for hover */
+    color: var(--brown-dark);
+  }
+  /* --- END OF FIX --- */
+
   .link-accent {
     color: var(--accent-color);
     font-weight: 500;
