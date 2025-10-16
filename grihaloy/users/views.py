@@ -3,19 +3,20 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, UserUpdateForm, VerificationDocumentForm, \
-    RatingForm  # <-- Added UserUpdateForm
+from .forms import CustomUserCreationForm, ProfileEditForm, VerificationDocumentForm, RatingForm
 from .models import VerificationDocument, Rating, CustomUser
 
 
 def register_user(request):
     if request.method == 'POST':
-        # --- MODIFIED: Handle file uploads (request.FILES) ---
         form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            if user.role == 'ADMIN':
+                user.is_approved = True
+            user.save()
             login(request, user)
-            messages.success(request, "Registration successful. Your account is pending admin approval.")
+            messages.success(request, "Registration successful.")
             return redirect('home:index')
         else:
             messages.error(request, "Please correct errors below.")
@@ -24,7 +25,6 @@ def register_user(request):
     return render(request, 'users/register.html', {'form': form})
 
 
-# --- No changes to login_user or logout_user ---
 def login_user(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -45,40 +45,34 @@ def logout_user(request):
     return redirect('home:index')
 
 
-# --- NEW: Profile Views ---
-
 @login_required
 def profile_detail(request, username):
     profile_user = get_object_or_404(CustomUser, username=username)
-    # You can add more context here, like user's ratings or properties
     return render(request, 'users/profile_detail.html', {'profile_user': profile_user})
 
 
 @login_required
 def profile_edit(request):
-    if not request.user.is_approved:
+    if not request.user.is_superuser and request.user.role != 'ADMIN' and not request.user.is_approved:
         messages.error(request, "Your account is not approved yet. You cannot edit your profile.")
         return redirect('users:profile_detail', username=request.user.username)
 
     if request.method == 'POST':
-        form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
+        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated successfully!')
             return redirect('users:profile_detail', username=request.user.username)
     else:
-        form = UserUpdateForm(instance=request.user)
+        form = ProfileEditForm(instance=request.user)
     return render(request, 'users/profile_edit.html', {'form': form})
 
-
-# --- NEW: Admin Views ---
 
 @login_required
 def user_list(request):
     if not (request.user.role == 'ADMIN' or request.user.is_superuser):
         messages.error(request, "You do not have permission to view this page.")
         return redirect('home:index')
-
     users = CustomUser.objects.all().order_by('username')
     return render(request, 'users/user_list.html', {'users': users})
 
@@ -96,7 +90,6 @@ def approve_user(request, pk):
     return redirect('users:user_list')
 
 
-# --- No changes to VerificationDocument or Rating views ---
 @login_required
 def verification_list(request):
     if request.user.role == 'ADMIN' or request.user.is_superuser:
@@ -137,11 +130,24 @@ def verification_change_status(request, pk, status):
     if not (request.user.role == 'ADMIN' or request.user.is_superuser):
         messages.error(request, "Permission denied.")
         return redirect('users:verification_list')
+
     doc = get_object_or_404(VerificationDocument, pk=pk)
-    if status in [VerificationDocument.APPROVED, VerificationDocument.REJECTED, VerificationDocument.PENDING]:
+    if status in ['PENDING', 'APPROVED', 'REJECTED']:
         doc.status = status
         doc.save()
         messages.success(request, f"Status set to {status}.")
+
+        # --- THIS IS THE NEW LOGIC ---
+        user_to_verify = doc.user
+        # If any of this user's documents are approved, they get the verified badge.
+        if user_to_verify.verification_docs.filter(status='APPROVED').exists():
+            user_to_verify.is_kyc_verified = True
+        else:
+            # If they have no approved documents, the badge is removed.
+            user_to_verify.is_kyc_verified = False
+        user_to_verify.save()
+        # --- END OF NEW LOGIC ---
+
     return redirect('users:verification_list')
 
 

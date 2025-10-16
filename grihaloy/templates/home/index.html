@@ -7,9 +7,18 @@
     <p class="lead mb-4">Simplifying property rentals across Bangladesh — with trust and technology.</p>
 
     {% if not user.is_authenticated %}
-      <a href="{% url 'users:register' %}" class="btn btn-accent btn-lg me-2">Get Started</a> <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-lg">Login</a>
+      <a href="{% url 'users:register' %}" class="btn btn-accent btn-lg me-2">Get Started</a>
+      <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-lg">Login</a>
     {% else %}
-      <a href="{% url 'users:verification_list' %}" class="btn btn-accent btn-lg">My Documents</a> {% endif %}
+      <a href="{% url 'users:verification_list' %}" class="btn btn-accent btn-lg">
+        {# --- NEW: Dynamic Button Text --- #}
+        {% if request.user.role == 'ADMIN' %}
+          KYC Requests
+        {% else %}
+          Request KYC
+        {% endif %}
+      </a>
+    {% endif %}
   </div>
 </section>
 
@@ -44,5 +53,4 @@
     </div>
   </div>
 </section>
-
 {% endblock %}

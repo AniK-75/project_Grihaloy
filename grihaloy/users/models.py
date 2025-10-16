@@ -14,16 +14,17 @@ class CustomUser(AbstractUser):
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=RENTER)
     phone = models.CharField(max_length=20, blank=True, null=True)
-
-    # --- NEW FIELDS ---
     profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.png')
     is_approved = models.BooleanField(default=False, help_text='Set to true when the user is approved by an admin.')
+
+    # --- NEW FIELD FOR THE VERIFIED BADGE ---
+    is_kyc_verified = models.BooleanField(default=False,
+                                          help_text='Set to true when a user has an approved KYC document.')
 
     def __str__(self):
         return f"{self.username} ({self.role})"
 
 
-# --- NO CHANGES TO OTHER MODELS ---
 class VerificationDocument(models.Model):
     PENDING = 'PENDING'
     APPROVED = 'APPROVED'

@@ -5,26 +5,29 @@
     <div class="card shadow-sm border-0">
       <div class="card-body p-5">
         <div class="row align-items-center">
-          <!-- Profile Picture -->
           <div class="col-md-4 text-center">
             <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.username }}" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--accent-color);">
           </div>
-          <!-- Profile Info -->
           <div class="col-md-8">
             <div class="d-flex align-items-center mb-2">
               <h2 class="mb-0 text-brown me-3">{{ profile_user.username }}</h2>
-              <span class="badge rounded-pill" style="background-color: var(--brown); color: white;">{{ profile_user.role }}</span>
+              {# --- NEW: Verified Badge on Profile Page --- #}
+              {% if profile_user.is_kyc_verified %}
+                <span class="ms-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#c79c6d" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+                </span>
+              {% endif %}
+              <span class="badge rounded-pill ms-auto" style="background-color: var(--brown); color: white;">{{ profile_user.get_role_display }}</span>
             </div>
             <p class="text-muted"><a href="mailto:{{ profile_user.email }}" class="text-muted text-decoration-none">{{ profile_user.email }}</a></p>
             <p class="text-muted">Phone: {{ profile_user.phone|default:"Not provided" }}</p>
-            
-            {% if profile_user.is_approved %}
+
+            {% if profile_user.role == 'ADMIN' or profile_user.is_approved %}
               <p><span class="badge bg-success">Account Approved</span></p>
             {% else %}
               <p><span class="badge bg-warning text-dark">Pending Approval</span></p>
             {% endif %}
 
-            <!-- Action Buttons -->
             {% if request.user == profile_user %}
               <a href="{% url 'users:profile_edit' %}" class="btn btn-accent mt-2">Edit Profile</a>
             {% endif %}
