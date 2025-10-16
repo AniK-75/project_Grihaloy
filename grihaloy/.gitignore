@@ -1,17 +1,23 @@
-# Python
+# Python / Virtual Environment
+.venv/
+venv/
 __pycache__/
 *.pyc
-
-# Django
 *.log
+
+# Database
 db.sqlite3
-/media/
-/static/
 
-# Environment
-.env
-venv/
-env/
-
-# IDE files
+# IDE Files
 .idea/
+
+# Environment Variables
+.env
+
+# --- FINAL MEDIA/UPLOAD FIX ---
+# 1. IGNORE the entire /media/ directory and everything inside it.
+/grihaloy/media/*
+
+# 2. EXCEPTION: UN-IGNORE the sub-directory where default images are kept.
+# (This allows us to commit the directory and the default.png file)
+!/grihaloy/media/images/
