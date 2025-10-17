@@ -137,8 +137,14 @@
 </div>
 
 <style>
-  .form-card { border-radius: 12px; }
+  .form-card {
+    border-radius: 12px;
+    /* Reverted back to your light card style */
+    background-color: white !important;
+    border: 1px solid #dee2e6 !important;
+  }
 
+  /* --- REVERTED to your original light input field styles --- */
   .form-card .form-control,
   .form-card .form-select,
   .form-card textarea.form-control,
@@ -148,6 +154,7 @@
     border: 1px solid #e8e8ef;
     border-radius: 8px;
     transition: border-color .2s, box-shadow .2s, background-color .2s;
+    color: #212529; /* Standard dark text color */
   }
   .form-card textarea.form-control {
     height: auto;
@@ -163,13 +170,12 @@
     box-shadow: 0 0 0 4px rgba(199, 156, 109, 0.18);
     outline: none;
   }
+  /* --- END OF REVERT --- */
 
-  #id_city option:hover,
-  #id_city option:checked,
-  #id_property_type option:hover,
-  #id_property_type option:checked {
-    background-color: var(--brown);
-    color: #fff;
+  /* --- KEPT the fix for the dropdown option color --- */
+  .form-card select option:hover {
+    background-color: #0d6efd; /* Consistent blue */
+    color: white;
   }
 
   .form-check-input {
@@ -178,7 +184,7 @@
     cursor: pointer;
   }
 
-  /* --- NEW CUSTOM FILE INPUT STYLES --- */
+  /* --- REVERTED Custom File Input Styles to light theme --- */
   .file-input-wrapper {
     display: flex;
     justify-content: space-between;
@@ -218,9 +224,10 @@
     background-color: var(--accent-color);
     color: var(--brown-dark);
   }
-  /* --- END OF NEW STYLES --- */
 </style>
-{% endblock %} {% block scripts %}
+{% endblock %}
+
+{% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const propertyPhotosInput = document.querySelector('#id_images');
