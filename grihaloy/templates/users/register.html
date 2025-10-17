@@ -128,4 +128,33 @@
     .auth-image-panel { display: none; }
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('id_role');
+    const secretCodeInput = document.getElementById('id_admin_secret_code');
+
+    // Make sure both elements exist on the page before running the script
+    if (roleSelect && secretCodeInput) {
+      // Django's 'form.as_p' wraps each field in a <p> tag. We need to find and hide this parent tag.
+      const secretCodeContainer = secretCodeInput.closest('p');
+
+      const toggleSecretField = () => {
+        if (roleSelect.value === 'ADMIN') {
+          // If the role is ADMIN, show the secret code field.
+          secretCodeContainer.style.display = 'block';
+        } else {
+          // For any other role, hide it.
+          secretCodeContainer.style.display = 'none';
+        }
+      };
+
+      // Run the function once when the page loads to set the correct initial state.
+      toggleSecretField();
+
+      // Add an event listener to run the function every time the role is changed.
+      roleSelect.addEventListener('change', toggleSecretField);
+    }
+  });
+</script>
 {% endblock %}
