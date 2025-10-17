@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9 col-lg-10">
+    <div class="card border-0 shadow-sm form-card">
+      <div class="card-body p-4 p-md-5">
+        <h3 class="mb-4 text-brown">
+          {% if is_create %}Add Property{% else %}Edit Property{% endif %}
+        </h3>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Title -->
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.title.id_for_label }}">Title</label>
+            {{ form.title }}
+            {% for e in form.title.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Description -->
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+            {% for e in form.description.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Address / Area / City -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-5">
+              <label class="form-label" for="{{ form.address.id_for_label }}">Address</label>
+              {{ form.address }}
+              {% for e in form.address.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.area.id_for_label }}">Area</label>
+              {{ form.area }}
+              {% for e in form.area.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="{{ form.city.id_for_label }}">City</label>
+              {{ form.city }}
+              {% for e in form.city.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <!-- Type / Bedrooms / Bathrooms / Size / Price -->
+          <div class="row g-3 mb-2">
+            <div class="col-lg-3 col-md-4">
+              <label class="form-label" for="{{ form.property_type.id_for_label }}">Type</label>
+              {{ form.property_type }}
+              {% for e in form.property_type.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-lg-2 col-md-4">
+              <label class="form-label" for="{{ form.bedrooms.id_for_label }}">Bedrooms</label>
+              {{ form.bedrooms }}
+              {% for e in form.bedrooms.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-lg-2 col-md-4">
+              <label class="form-label" for="{{ form.bathrooms.id_for_label }}">Bathrooms</label>
+              {{ form.bathrooms }}
+              {% for e in form.bathrooms.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-lg-2 col-md-6">
+              <label class="form-label" for="{{ form.size_sqft.id_for_label }}">Size (sqft)</label>
+              {{ form.size_sqft }}
+              {% for e in form.size_sqft.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <label class="form-label" for="{{ form.price.id_for_label }}">Price</label>
+              {{ form.price }}
+              {% for e in form.price.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <!-- Checkboxes -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6 d-flex align-items-center">
+              <div class="form-check">
+                {{ form.is_price_fixed }}
+                <label class="form-check-label ms-2" for="{{ form.is_price_fixed.id_for_label }}">Is price fixed?</label>
+              </div>
+            </div>
+            <div class="col-md-6 d-flex align-items-center">
+              <div class="form-check">
+                {{ form.is_active }}
+                <label class="form-check-label ms-2" for="{{ form.is_active.id_for_label }}">Is active?</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photos -->
+          <div class="mb-2">
+            <label class="form-label">Property Photos</label>
+            <input type="file" name="images" multiple accept="image/*" class="form-control file-control">
+            {% if photo_error %}
+              <div class="text-danger small mt-2">{{ photo_error }}</div>
+            {% endif %}
+            <div class="form-text">At least one photo is required when creating a listing.</div>
+          </div>
+
+          {% if not is_create and photos %}
+            <hr class="my-4">
+            <h5 class="text-brown mb-3">Existing Photos</h5>
+            <div class="row g-3">
+              {% for ph in photos %}
+                <div class="col-6 col-md-4 col-lg-3">
+                  <div class="card border-0 shadow-sm h-100">
+                    <img src="{{ ph.image.url }}" alt="Photo" class="card-img-top" style="height:160px; object-fit:cover;">
+                    <div class="card-body p-2">
+                      <form method="post" action="{% url 'properties:photo_delete' object.pk ph.pk %}" onsubmit="return confirm('Delete this photo?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Actions -->
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-brown">Save</button>
+            {% if is_create %}
+              <a href="{% url 'properties:list' %}" class="btn btn-outline-secondary">Cancel</a>
+            {% else %}
+              <a href="{% url 'properties:my' %}" class="btn btn-outline-secondary">Cancel</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-card { border-radius: 12px; }
+
+  .form-card .form-control,
+  .form-card .form-select,
+  .form-card textarea.form-control,
+  .form-card select {
+    height: 46px;
+    background: #f7f7fb;
+    border: 1px solid #e8e8ef;
+    border-radius: 8px;
+    transition: border-color .2s, box-shadow .2s, background-color .2s;
+  }
+  .form-card textarea.form-control {
+    height: auto;
+    min-height: 140px;
+    resize: vertical;
+  }
+  .form-card .form-control:focus,
+  .form-card .form-select:focus,
+  .form-card textarea.form-control:focus,
+  .form-card select:focus {
+    background: #fff;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(199, 156, 109, 0.18);
+    outline: none;
+  }
+
+  #id_city option:hover,
+  #id_city option:checked,
+  #id_property_type option:hover,
+  #id_property_type option:checked {
+    background-color: var(--brown);
+    color: #fff;
+  }
+
+  .form-check-input {
+    accent-color: var(--brown);
+    border-color: var(--brown);
+    cursor: pointer;
+  }
+
+  .file-control {
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .file-control::file-selector-button {
+    background-color: var(--accent-color);
+    color: var(--brown-dark);
+    font-weight: 600;
+    border: none;
+    padding: 0.55rem 1rem;
+    height: 42px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color .2s, color .2s, transform .02s;
+    margin-right: 0.9rem;
+  }
+  .file-control:hover::file-selector-button,
+  .file-control:focus::file-selector-button {
+    background-color: var(--brown);
+    color: #fff;
+  }
+  .file-control:active::file-selector-button {
+    transform: translateY(1px);
+  }
+</style>
+{% endblock %}

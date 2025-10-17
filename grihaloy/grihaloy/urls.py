@@ -11,6 +11,7 @@ urlpatterns = [
 
     # 👇 Users app
     path('users/', include(('users.urls', 'users'), namespace='users')),
+    path('properties/', include(('properties.urls', 'properties'), namespace='properties')),
 ]
 
 if settings.DEBUG:

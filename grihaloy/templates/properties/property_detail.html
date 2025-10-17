@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <h3 class="mb-2 text-brown">{{ property.title }}</h3>
+  <div class="d-flex gap-2">
+    <a href="{% url 'properties:list' %}" class="btn btn-outline-secondary">Back to Explore</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div id="carousel-{{ property.pk }}" class="carousel slide shadow-sm" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        {% if property.photos.all|length > 0 %}
+          {% for ph in property.photos.all %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <img src="{{ ph.image.url }}" class="d-block w-100" alt="{{ ph.caption|default:property.title }}" style="height:420px; object-fit:cover;">
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="carousel-item active">
+            <div class="d-flex align-items-center justify-content-center bg-light" style="height:420px;">
+              <span class="text-muted">No photos</span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      {% if property.photos.all|length > 1 %}
+      <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ property.pk }}" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ property.pk }}" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <h5 class="mb-0 text-brown">{{ property.area }}, {{ property.city }}</h5>
+          <span class="badge bg-light text-dark ms-3">{{ property.get_property_type_display }}</span>
+          {% if property.is_active %}
+            <span class="badge bg-success ms-auto">Active</span>
+          {% else %}
+            <span class="badge bg-warning text-dark ms-auto">Inactive</span>
+          {% endif %}
+        </div>
+
+        <p class="mb-1"><strong>Price:</strong> ৳ {{ property.price|floatformat:0 }} {% if property.is_price_fixed %}<span class="text-muted">(fixed)</span>{% endif %}</p>
+        <p class="mb-1"><strong>Bedrooms:</strong> {{ property.bedrooms }} &nbsp; <strong>Bathrooms:</strong> {{ property.bathrooms }}</p>
+        <p class="mb-1"><strong>Size:</strong> {{ property.size_sqft }} sqft</p>
+        <p class="mb-1"><strong>Address:</strong> {{ property.address }}</p>
+        <p class="mb-3"><strong>Owner:</strong>
+          <a class="text-decoration-none" href="{% url 'users:profile_detail' property.owner.username %}">{{ property.owner.username }}</a>
+          {% if property.owner.is_kyc_verified %}
+            <span class="ms-1" title="KYC Verified">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#c79c6d" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+            </span>
+          {% endif %}
+        </p>
+
+        {% if property.description %}
+          <div class="mb-3"><strong>Description:</strong><br>{{ property.description|linebreaksbr }}</div>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2">
+          {% if can_edit %}
+            <a href="{% url 'properties:edit' property.pk %}" class="btn btn-accent">Edit Listing</a>
+          {% elif can_request_edit %}
+            <a href="{% url 'properties:request_edit' property.pk %}" class="btn btn-outline-secondary">Request Edit Access</a>
+          {% endif %}
+
+          {% if can_toggle %}
+            {% if property.is_active %}
+              <form method="post" action="{% url 'properties:deactivate' property.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-warning">Deactivate</button>
+              </form>
+            {% else %}
+              <form method="post" action="{% url 'properties:activate' property.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success">Activate</button>
+              </form>
+            {% endif %}
+          {% endif %}
+
+          {% if user.is_authenticated and property.owner_id == user.id %}
+            <a href="{% url 'properties:request_delete' property.pk %}" class="btn btn-outline-danger">Request Delete</a>
+          {% endif %}
+
+          {% if can_delete %}
+            <a href="{% url 'properties:delete' property.pk %}" class="btn btn-brown">Delete (Admin)</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

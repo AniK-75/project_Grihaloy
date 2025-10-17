@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-sm border-0 p-4 p-md-5">
+      <h3 class="mb-3 text-brown">Request Delete</h3>
+      <p class="text-muted">Listing: <strong>{{ property.title }}</strong></p>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-grid gap-2 mt-3">
+          <button type="submit" class="btn btn-brown">Submit Request</button>
+          <a href="{% url 'properties:detail' property.pk %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

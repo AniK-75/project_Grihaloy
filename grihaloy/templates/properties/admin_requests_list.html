@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <h3 class="mb-2 text-brown">Property Requests</h3>
+  <a href="{% url 'properties:list' %}" class="btn btn-outline-secondary">Back to Explore</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white">
+        <h5 class="mb-0 text-brown">Edit Access Requests</h5>
+      </div>
+      <div class="card-body">
+        {% if edit_requests %}
+          <ul class="list-group list-group-flush">
+            {% for r in edit_requests %}
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <a href="{% url 'properties:detail' r.property.pk %}" class="text-brown text-decoration-none fw-semibold">{{ r.property.title }}</a>
+                    <div class="small text-muted">By <a href="{% url 'users:profile_detail' r.requester.username %}">{{ r.requester.username }}</a> • {{ r.created_at }}</div>
+                    <div class="small mt-1"><strong>Reason:</strong> {{ r.reason }}</div>
+                    {% if r.admin_note %}
+                      <div class="small text-muted mt-1"><strong>Admin Note:</strong> {{ r.admin_note }}</div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    {% if r.status == 'pending' %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif r.status == 'approved' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if r.status == 'pending' %}
+                  <div class="mt-3 d-flex gap-2">
+                    <form method="post" action="{% url 'properties:approve_edit_request' r.pk %}" class="d-inline">
+                      {% csrf_token %}
+                      <input type="text" name="admin_note" class="form-control form-control-sm mb-2" placeholder="Admin note (optional)">
+                      <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'properties:reject_edit_request' r.pk %}" class="d-inline">
+                      {% csrf_token %}
+                      <input type="text" name="admin_note" class="form-control form-control-sm mb-2" placeholder="Admin note (optional)">
+                      <button type="submit" class="btn btn-sm btn-outline-warning">Reject</button>
+                    </form>
+                  </div>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted mb-0">No edit requests.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white">
+        <h5 class="mb-0 text-brown">Delete Requests</h5>
+      </div>
+      <div class="card-body">
+        {% if delete_requests %}
+          <ul class="list-group list-group-flush">
+            {% for r in delete_requests %}
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    {% if r.property %}
+                      <a href="{% url 'properties:detail' r.property.pk %}" class="text-brown text-decoration-none fw-semibold">{{ r.property.title }}</a>
+                    {% else %}
+                      <span class="text-muted fw-semibold">Deleted Listing</span>
+                    {% endif %}
+                    <div class="small text-muted">By <a href="{% url 'users:profile_detail' r.requester.username %}">{{ r.requester.username }}</a> • {{ r.created_at }}</div>
+                    <div class="small mt-1"><strong>Reason:</strong> {{ r.reason }}</div>
+                    {% if r.admin_note %}
+                      <div class="small text-muted mt-1"><strong>Admin Note:</strong> {{ r.admin_note }}</div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    {% if r.status == 'pending' %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif r.status == 'approved' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if r.status == 'pending' %}
+                  <div class="mt-3 d-flex gap-2">
+                    <form method="post" action="{% url 'properties:approve_delete_request' r.pk %}" class="d-inline">
+                      {% csrf_token %}
+                      <input type="text" name="admin_note" class="form-control form-control-sm mb-2" placeholder="Admin note (optional)">
+                      <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'properties:reject_delete_request' r.pk %}" class="d-inline">
+                      {% csrf_token %}
+                      <input type="text" name="admin_note" class="form-control form-control-sm mb-2" placeholder="Admin note (optional)">
+                      <button type="submit" class="btn btn-sm btn-outline-warning">Reject</button>
+                    </form>
+                  </div>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted mb-0">No delete requests.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
