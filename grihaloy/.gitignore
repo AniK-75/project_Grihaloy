@@ -6,6 +6,7 @@ __pycache__/
 
 # Database
 db.sqlite3
+grihaloy/db.sqlite3 # Just in case it's inside the app folder
 
 # IDE Files
 .idea/
@@ -15,10 +16,8 @@ db.sqlite3
 
 # --- FINAL MEDIA/UPLOAD FIX ---
 
-# 1. IGNORE the entire /media/ directory and everything inside it.
-# This IGNORES all folders like profile_pics/ and verification_docs/.
-/grihaloy/media/*
+# 1. IGNORE the entire media directory inside the grihaloy app.
+grihaloy/media/*
 
 # 2. EXCEPTION: UN-IGNORE the specific default file we want to track.
-# This is the single file that will be committed to Git.
-!/grihaloy/media/default.png
+!grihaloy/media/default.png
