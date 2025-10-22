@@ -5,7 +5,7 @@ from .views import (
     MyPropertyListView, property_activate, property_deactivate,
     property_photo_delete, request_edit, request_delete,
     edit_request_list, approve_edit_request, reject_edit_request,
-    approve_delete_request, reject_delete_request, notifications,
+    approve_delete_request, reject_delete_request,
 )
 
 app_name = 'properties'
@@ -30,6 +30,4 @@ urlpatterns = [
     path('requests/edit/<uuid:request_id>/reject/', reject_edit_request, name='reject_edit_request'),
     path('requests/delete/<uuid:request_id>/approve/', approve_delete_request, name='approve_delete_request'),
     path('requests/delete/<uuid:request_id>/reject/', reject_delete_request, name='reject_delete_request'),
-
-    path('notifications/', notifications, name='notifications'),
 ]
