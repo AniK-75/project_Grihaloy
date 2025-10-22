@@ -12,7 +12,7 @@
           <div class="alert alert-warning">{{ form.non_field_errors }}</div>
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="property-form">
           {% csrf_token %}
 
           <div class="mb-3">
@@ -74,19 +74,23 @@
           </div>
 
           <div class="row g-3 mb-4">
-            <div class="col-md-6 d-flex align-items-center">
-              <div class="form-check">
+            <div class="col-md-4 d-flex align-items-center"> <div class="form-check">
                 {{ form.is_price_fixed }}
                 <label class="form-check-label ms-2" for="{{ form.is_price_fixed.id_for_label }}">Is price fixed?</label>
               </div>
             </div>
-            <div class="col-md-6 d-flex align-items-center">
-              <div class="form-check">
+            <div class="col-md-4 d-flex align-items-center"> <div class="form-check">
                 {{ form.is_active }}
                 <label class="form-check-label ms-2" for="{{ form.is_active.id_for_label }}">Is active?</label>
               </div>
             </div>
-          </div>
+            <div class="col-md-4 d-flex align-items-center">
+              <div class="form-check">
+                {{ form.negotiable }}
+                <label class="form-check-label ms-2" for="{{ form.negotiable.id_for_label }}">Allow negotiation?</label>
+              </div>
+            </div>
+            </div>
 
           <div class="mb-2">
             <label class="form-label">Property Photos</label>
@@ -102,26 +106,6 @@
             <div class="form-text">At least one photo is required when creating a listing.</div>
           </div>
 
-          {% if not is_create and photos %}
-            <hr class="my-4">
-            <h5 class="text-brown mb-3">Existing Photos</h5>
-            <div class="row g-3">
-              {% for ph in photos %}
-                <div class="col-6 col-md-4 col-lg-3">
-                  <div class="card border-0 shadow-sm h-100">
-                    <img src="{{ ph.image.url }}" alt="Photo" class="card-img-top" style="height:160px; object-fit:cover;">
-                    <div class="card-body p-2">
-                      <form method="post" action="{% url 'properties:photo_delete' object.pk ph.pk %}" onsubmit="return confirm('Delete this photo?');">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
           <div class="mt-4 d-flex gap-2">
             <button type="submit" class="btn btn-brown">Save</button>
             {% if is_create %}
@@ -131,6 +115,28 @@
             {% endif %}
           </div>
         </form>
+        {% if not is_create and photos %}
+          <hr class="my-4">
+          <h5 class="text-brown mb-3">Existing Photos</h5>
+          <div class="row g-3">
+            {% for ph in photos %}
+              <div class="col-6 col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
+                  <img src="{{ ph.image.url }}" alt="Photo" class="card-img-top" style="height:160px; object-fit:cover;">
+                  <div class="card-body p-2">
+
+                    <a href="{% url 'properties:photo_delete' object.pk ph.pk %}"
+                       class="btn btn-sm btn-outline-danger w-100 btn-delete-photo"
+                       data-csrf="{{ csrf_token }}">
+                       Delete
+                    </a>
+                    </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
       </div>
     </div>
   </div>
@@ -230,6 +236,7 @@
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // --- This is your existing script for the file input, it is correct ---
     const propertyPhotosInput = document.querySelector('#id_images');
     const textSpan = document.querySelector('.file-input-text');
 
@@ -246,6 +253,34 @@
         }
       });
     }
+
+    // --- START FIX: JavaScript to handle photo deletion ---
+    document.querySelectorAll('.btn-delete-photo').forEach(button => {
+      button.addEventListener('click', function(e) {
+        // Stop the link from navigating immediately
+        e.preventDefault();
+
+        if (confirm('Delete this photo?')) {
+          // Create a new, temporary form
+          const form = document.createElement('form');
+          form.method = 'post';
+          form.action = this.href; // 'this' is the <a> tag that was clicked
+
+          // Create and add the CSRF token
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrfmiddlewaretoken';
+          csrfInput.value = this.dataset.csrf; // Get token from data-csrf attribute
+          form.appendChild(csrfInput);
+
+          // Add the form to the page, submit it, then remove it
+          document.body.appendChild(form);
+          form.submit();
+          document.body.removeChild(form);
+        }
+      });
+    });
+    // --- END FIX ---
   });
 </script>
 {% endblock %}
