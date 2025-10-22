@@ -106,7 +106,6 @@ class LandlordOrAdminRequiredMixin(UserPassesTestMixin):
             return False
         if is_admin(user):
             return True
-        # Landlord must be approved to add
         return is_landlord(user) and getattr(user, 'is_approved', False)
 
     def handle_no_permission(self):
@@ -304,7 +303,6 @@ def request_delete(request, pk):
 
 @user_passes_test(is_admin)
 def edit_request_list(request):
-    # Admin page shows only Property Edit and Delete requests
     edit_reqs = PropertyEditRequest.objects.select_related('property', 'requester').order_by('-created_at')
     del_reqs = PropertyDeleteRequest.objects.select_related('property', 'requester').order_by('-created_at')
     return render(request, 'properties/admin_requests_list.html', {
@@ -388,12 +386,23 @@ def reject_delete_request(request, request_id):
 
 @login_required
 def notifications(request):
-    # Shown via the bell on the Home page
-    edit_reqs = PropertyEditRequest.objects.filter(requester=request.user).select_related('property').order_by('-created_at')
-    del_reqs = PropertyDeleteRequest.objects.filter(requester=request.user).select_related('property').order_by('-created_at')
+    """
+    Show only approved/rejected outcomes so it matches the navbar badge logic.
+    """
+    edit_requests = PropertyEditRequest.objects.filter(
+        requester=request.user,
+        status__in=['approved', 'rejected']
+    ).select_related('property').order_by('-reviewed_at', '-created_at')
+
+    delete_requests = PropertyDeleteRequest.objects.filter(
+        requester=request.user,
+        status__in=['approved', 'rejected']
+    ).select_related('property').order_by('-reviewed_at', '-created_at')
+
     account_status = 'Approved' if getattr(request.user, 'is_approved', False) or is_admin(request.user) else 'Pending'
+
     return render(request, 'properties/notifications.html', {
-        'edit_requests': edit_reqs,
-        'delete_requests': del_reqs,
+        'edit_requests': edit_requests,
+        'delete_requests': delete_requests,
         'account_status': account_status,
     })

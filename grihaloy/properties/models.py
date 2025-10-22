@@ -77,6 +77,8 @@ class PropertyEditRequest(models.Model):
     reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='property_edit_reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+    # NEW: mark whether requester saw the outcome
+    seen_by_requester = models.BooleanField(default=False, help_text="Requester has seen the final decision.")
 
     class Meta:
         ordering = ['-created_at']
@@ -95,6 +97,8 @@ class PropertyDeleteRequest(models.Model):
     reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='property_delete_reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+    # NEW: mark whether requester saw the outcome
+    seen_by_requester = models.BooleanField(default=False, help_text="Requester has seen the final decision.")
 
     class Meta:
         ordering = ['-created_at']

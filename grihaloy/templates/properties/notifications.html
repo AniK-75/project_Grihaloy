@@ -6,114 +6,75 @@
 </div>
 
 <div class="row g-4">
-  <!-- Account Status -->
-  <div class="col-lg-4">
+  <!-- Reviewed Edit Requests -->
+  <div class="col-lg-6">
     <div class="card shadow-sm border-0">
       <div class="card-header bg-white">
-        <h5 class="mb-0 text-brown">Account Approval</h5>
-      </div>
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-semibold">{{ user.username }}</div>
-            <div class="small text-muted">{{ user.get_role_display }}</div>
-          </div>
-          <div>
-            {% if account_status == 'Approved' %}
-              <span class="badge bg-success">Approved</span>
-            {% else %}
-              <span class="badge bg-warning text-dark">Pending</span>
-            {% endif %}
-          </div>
-        </div>
-        <p class="small text-muted mt-2 mb-0">
-          {% if account_status == 'Approved' %}
-            Your account is active. You can use all permitted features.
-          {% else %}
-            Waiting for admin approval. You’ll be notified once approved.
-          {% endif %}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Requests -->
-  <div class="col-lg-4">
-    <div class="card shadow-sm border-0">
-      <div class="card-header bg-white">
-        <h5 class="mb-0 text-brown">Edit Access Requests</h5>
+        <h5 class="mb-0 text-brown">Reviewed Edit Requests</h5>
       </div>
       <div class="card-body">
         {% if edit_requests %}
           <ul class="list-group list-group-flush">
             {% for r in edit_requests %}
-              <li class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <a class="text-brown text-decoration-none" href="{% url 'properties:detail' r.property.pk %}">{{ r.property.title }}</a>
-                    <div class="small text-muted">{{ r.created_at }}</div>
-                  </div>
-                  <div>
-                    {% if r.status == 'approved' %}
-                      <span class="badge bg-success">Approved</span>
-                    {% elif r.status == 'rejected' %}
-                      <span class="badge bg-danger">Rejected</span>
-                    {% else %}
-                      <span class="badge bg-warning text-dark">Pending</span>
-                    {% endif %}
-                  </div>
+              <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="me-2">
+                  <a href="{% url 'properties:detail' r.property.pk %}" class="text-brown text-decoration-none fw-semibold">{{ r.property.title }}</a>
+                  <div class="small text-muted">Reviewed: {{ r.reviewed_at|default:r.created_at }}</div>
+                  {% if r.admin_note %}
+                    <div class="small text-muted">Admin Note: {{ r.admin_note }}</div>
+                  {% endif %}
                 </div>
-                {% if r.admin_note %}
-                  <div class="small text-muted mt-1">Admin Note: {{ r.admin_note }}</div>
-                {% endif %}
+                <div>
+                  {% if r.status == 'approved' %}
+                    <span class="badge bg-success">Approved</span>
+                  {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                  {% endif %}
+                </div>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted mb-0">No edit requests yet.</p>
+          <p class="text-muted mb-0">No reviewed edit requests yet.</p>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- Delete Requests -->
-  <div class="col-lg-4">
+  <!-- Reviewed Delete Requests -->
+  <div class="col-lg-6">
     <div class="card shadow-sm border-0">
       <div class="card-header bg-white">
-        <h5 class="mb-0 text-brown">Delete Requests</h5>
+        <h5 class="mb-0 text-brown">Reviewed Delete Requests</h5>
       </div>
       <div class="card-body">
         {% if delete_requests %}
           <ul class="list-group list-group-flush">
             {% for r in delete_requests %}
-              <li class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    {% if r.property %}
-                      <a class="text-brown text-decoration-none" href="{% url 'properties:detail' r.property.pk %}">{{ r.property.title }}</a>
-                    {% else %}
-                      <span class="text-muted">Deleted Listing</span>
-                    {% endif %}
-                    <div class="small text-muted">{{ r.created_at }}</div>
-                  </div>
-                  <div>
-                    {% if r.status == 'approved' %}
-                      <span class="badge bg-success">Approved</span>
-                    {% elif r.status == 'rejected' %}
-                      <span class="badge bg-danger">Rejected</span>
-                    {% else %}
-                      <span class="badge bg-warning text-dark">Pending</span>
-                    {% endif %}
-                  </div>
+              <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="me-2">
+                  {% if r.property %}
+                    <a href="{% url 'properties:detail' r.property.pk %}" class="text-brown text-decoration-none fw-semibold">{{ r.property.title }}</a>
+                  {% else %}
+                    <span class="fw-semibold text-muted">Deleted Listing</span>
+                  {% endif %}
+                  <div class="small text-muted">Reviewed: {{ r.reviewed_at|default:r.created_at }}</div>
+                  {% if r.admin_note %}
+                    <div class="small text-muted">Admin Note: {{ r.admin_note }}</div>
+                  {% endif %}
                 </div>
-                {% if r.admin_note %}
-                  <div class="small text-muted mt-1">Admin Note: {{ r.admin_note }}</div>
-                {% endif %}
+                <div>
+                  {% if r.status == 'approved' %}
+                    <span class="badge bg-success">Approved</span>
+                  {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                  {% endif %}
+                </div>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted mb-0">No delete requests yet.</p>
+          <p class="text-muted mb-0">No reviewed delete requests yet.</p>
         {% endif %}
       </div>
     </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% load static %}
+{% load static notif_tags %}
 
 <html lang="en">
 <head>
@@ -151,13 +151,19 @@
             </ul>
           </li>
 
-          <!-- Notifications icon -->
+          <!-- Notifications icon with reviewed-outcomes badge -->
           {% if request.user.role == 'RENTER' or request.user.role == 'LANDLORD' %}
             <li class="nav-item ms-2">
-              <a class="nav-link d-flex align-items-center" href="{% url 'properties:notifications' %}" title="Notifications" aria-label="Notifications">
+              <a class="nav-link d-flex align-items-center position-relative" href="{% url 'properties:notifications' %}" title="Notifications" aria-label="Notifications">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 19 19">
                   <path d="M8 16a2 2 0 0 0 1.985-1.75H6.015A2 2 0 0 0 8 16m6-6c0-1.098-.402-2.05-1.07-2.777-.67-.729-1.511-1.16-2.43-1.32V5a2.5 2.5 0 1 0-5 0v.903c-.92.16-1.76.591-2.43 1.32C2.402 7.95 2 8.902 2 10v1l-1 1v1h14v-1l-1-1z"/>
                 </svg>
+                {% notification_count as notif_total %}
+                {% if notif_total > 0 %}
+                  <span class="badge rounded-pill bg-danger position-absolute" style="top:-2px; right:-6px; font-size:0.65rem;">
+                    {{ notif_total }}
+                  </span>
+                {% endif %}
               </a>
             </li>
           {% endif %}
@@ -210,10 +216,10 @@
 
       const icon = document.createElement('span');
       icon.className = 'password-toggle-icon';
-      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0  0 0 0 7z"/></svg>`;
 
       const eyeIcon = icon.innerHTML;
-      const eyeSlashIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s-3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0 4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
+      const eyeSlashIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s-3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0 4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0  0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0  0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
 
       field.parentNode.insertBefore(wrapper, field);
       wrapper.appendChild(field);
@@ -233,4 +239,3 @@
 
 </body>
 </html>
-
