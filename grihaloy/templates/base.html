@@ -1,131 +1,236 @@
-<!doctype html>
+<!DOCTYPE html>
 {% load static %}
+
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Grihaloy</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-      :root { --brown:#3d3735; --brown-dark:#2c2726; --cream:#fffdfc; --accent-color:#c79c6d; }
-      html,body{height:100%}
-      body{display:flex;flex-direction:column;background-color:var(--cream);font-family:'Poppins',sans-serif;color:#333}
-      main{flex:1 0 auto} footer{flex-shrink:0}
-      .navbar{background-color:var(--brown)} .navbar-brand img{height:42px}
-      .nav-link{color:#fff!important;font-weight:500;transition:all .3s ease}
-      .nav-link:hover{color:var(--accent-color)!important}
-      .alert{border-radius:10px}
-      footer{background-color:var(--brown-dark);color:#eee;padding:25px 0;text-align:center;margin-top:80px}
-      footer p{margin:0;font-size:.95rem} footer a{color:var(--accent-color);text-decoration:none} footer a:hover{text-decoration:underline}
-      .btn-accent{background-color:var(--accent-color);color:var(--brown-dark);font-weight:500;border:none}
-      .btn-accent:hover{background-color:#b3895b;color:var(--brown-dark)}
-      .btn-brown{background-color:var(--brown);color:#fff;font-weight:500;border:none}
-      .btn-brown:hover{background-color:var(--brown-dark);color:var(--accent-color)}
-      .text-brown{color:var(--brown)}
-      .password-wrapper{position:relative}
-      .password-toggle-icon{position:absolute;top:50%;right:15px;transform:translateY(-50%);cursor:pointer;color:#888;user-select:none}
-      .password-toggle-icon:hover{color:var(--brown-dark)}
-    </style>
-  </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm sticky-top">
-      <div class="container">
-        <a class="navbar-brand" href="{% url 'home:index' %}">
-          <img src="{% static 'images/logo.png' %}" alt="Logo">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+<head>
+  <meta charset="utf-8">
+  <title>Grihaloy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <div class="collapse navbar-collapse" id="navmenu">
-          <!-- LEFT -->
-          <ul class="navbar-nav me-auto align-items-center">
-            <li class="nav-item"><a class="nav-link" href="{% url 'properties:list' %}">Explore</a></li>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-            {% if request.user.is_authenticated %}
-              {% if request.user.role == 'LANDLORD' %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'properties:my' %}">My Listings</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'properties:add' %}">Add Property</a></li>
-              {% elif request.user.role == 'ADMIN' or request.user.is_superuser %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'properties:requests' %}">Edit Requests</a></li>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Custom Styles -->
+  <style>
+    :root {
+      --brown: #3d3735;
+      --brown-dark: #2c2726;
+      --cream: #fffdfc;
+      --accent-color: #c79c6d;
+    }
+
+    html, body { height: 100%; }
+    body {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--cream);
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+    }
+
+    main { flex: 1 0 auto; }
+    footer { flex-shrink: 0; }
+
+    .navbar { background-color: var(--brown); }
+    .navbar-brand img { height: 42px; }
+    .nav-link {
+      color: #fff !important;
+      font-weight: 500;
+      transition: all .3s ease;
+    }
+    .nav-link:hover { color: var(--accent-color) !important; }
+
+    .alert { border-radius: 10px; }
+
+    footer {
+      background-color: var(--brown-dark);
+      color: #eee;
+      padding: 25px 0;
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    footer p { margin: 0; font-size: .95rem; }
+    footer a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+
+    .btn-accent {
+      background-color: var(--accent-color);
+      color: var(--brown-dark);
+      font-weight: 500;
+      border: none;
+    }
+    .btn-accent:hover {
+      background-color: #b3895b;
+      color: var(--brown-dark);
+    }
+
+    .btn-brown {
+      background-color: var(--brown);
+      color: #fff;
+      font-weight: 500;
+      border: none;
+    }
+    .btn-brown:hover {
+      background-color: var(--brown-dark);
+      color: var(--accent-color);
+    }
+
+    .text-brown { color: var(--brown); }
+
+    .password-wrapper { position: relative; }
+    .password-toggle-icon {
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #888;
+      user-select: none;
+    }
+    .password-toggle-icon:hover { color: var(--brown-dark); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home:index' %}">
+      <img src="{% static 'images/logo.png' %}" alt="Logo">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navmenu">
+      <!-- LEFT -->
+      <ul class="navbar-nav me-auto align-items-center">
+        <li class="nav-item"><a class="nav-link" href="{% url 'properties:list' %}">Explore</a></li>
+
+        {% if request.user.is_authenticated %}
+          {% if request.user.role == 'LANDLORD' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'properties:my' %}">My Listings</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'properties:add' %}">Add Property</a></li>
+          {% elif request.user.role == 'ADMIN' or request.user.is_superuser %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'properties:requests' %}">Edit Requests</a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+
+      <!-- RIGHT: Profile + Notifications -->
+      <ul class="navbar-nav ms-auto align-items-center">
+        {% if request.user.is_authenticated %}
+          <!-- Profile dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="{{ request.user.profile_picture.url }}" alt="" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;margin-right:10px;">
+              Hello, {{ request.user.username }}
+              {% if request.user.is_kyc_verified %}
+                <span class="ms-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#c79c6d" class="bi bi-star-fill" viewBox="0 0 19 19">
+                    <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                  </svg>
+                </span>
               {% endif %}
-            {% endif %}
-          </ul>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="{% url 'users:profile_detail' request.user.username %}">My Profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'users:profile_edit' %}">Edit Profile</a></li>
+              {% if request.user.role == 'ADMIN' or request.user.is_superuser %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'users:user_list' %}">Manage Users</a></li>
+              {% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+            </ul>
+          </li>
 
-          <!-- RIGHT: Profile only (notifications removed) -->
-          <ul class="navbar-nav ms-auto align-items-center">
-            {% if request.user.is_authenticated %}
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <img src="{{ request.user.profile_picture.url }}" alt=" " class="rounded-circle" style="width:32px;height:32px;object-fit:cover;margin-right:10px;">
-                  Hello, {{ request.user.username }}
-                  {% if request.user.is_kyc_verified %}
-                    <span class="ms-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#c79c6d" class="bi bi-star-fill" style="vertical-align:-0.125em" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
-                    </span>
-                  {% endif %}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="{% url 'users:profile_detail' request.user.username %}">My Profile</a></li>
-                  <li><a class="dropdown-item" href="{% url 'users:profile_edit' %}">Edit Profile</a></li>
-                  {% if request.user.role == 'ADMIN' or request.user.is_superuser %}
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{% url 'users:user_list' %}">Manage Users</a></li>
-                  {% endif %}
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
-                </ul>
-              </li>
-            {% else %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'users:login' %}">Login</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'users:register' %}">Register</a></li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    </nav>
-
-    <div class="container mt-3">
-      {% if messages %}
-        {% for m in messages %}
-          <div class="alert alert-info alert-dismissible fade show" role="alert">
-            {{ m }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
+          <!-- Notifications icon -->
+          {% if request.user.role == 'RENTER' or request.user.role == 'LANDLORD' %}
+            <li class="nav-item ms-2">
+              <a class="nav-link d-flex align-items-center" href="{% url 'properties:notifications' %}" title="Notifications" aria-label="Notifications">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 19 19">
+                  <path d="M8 16a2 2 0 0 0 1.985-1.75H6.015A2 2 0 0 0 8 16m6-6c0-1.098-.402-2.05-1.07-2.777-.67-.729-1.511-1.16-2.43-1.32V5a2.5 2.5 0 1 0-5 0v.903c-.92.16-1.76.591-2.43 1.32C2.402 7.95 2 8.902 2 10v1l-1 1v1h14v-1l-1-1z"/>
+                </svg>
+              </a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'users:login' %}">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'users:register' %}">Register</a></li>
+        {% endif %}
+      </ul>
     </div>
+  </div>
+</nav>
 
-    <main class="container my-5">{% block content %}{% endblock %}</main>
-
-    <footer>
-      <div class="container">
-        <p>© 2025 Grihaloy | Designed with ❤️ by Team Grihaloy</p>
-        <p><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a></p>
+<!-- Alerts -->
+<div class="container mt-3">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-info alert-dismissible fade show" role="alert">
+        {{ m }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
-    </footer>
+    {% endfor %}
+  {% endif %}
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Password toggle
-      document.addEventListener('DOMContentLoaded', function() {
-        const passwordFields = document.querySelectorAll('input[type="password"]');
-        passwordFields.forEach(field => {
-          const wrapper = document.createElement('div'); wrapper.className = 'password-wrapper';
-          const icon = document.createElement('span'); icon.className = 'password-toggle-icon';
-          icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
-          const eyeIcon = icon.innerHTML;
-          const eyeSlashIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0  0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s-3 5.5 8 5.5a7.029 7.029 0  0 0 2.79-.588zM5.21 3.088A7.028 7.028 0  0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0  0 0 4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0  0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0  0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
-          field.parentNode.insertBefore(wrapper, field);
-          wrapper.appendChild(field); wrapper.appendChild(icon);
-          icon.addEventListener('click', function() {
-            const isPassword = field.getAttribute('type') === 'password';
-            field.setAttribute('type', isPassword ? 'text' : 'password');
-            icon.innerHTML = isPassword ? eyeSlashIcon : eyeIcon;
-          });
-        });
+<!-- Main Content -->
+<main class="container my-5">
+  {% block content %}
+  <!-- Page-specific content goes here -->
+  {% endblock %}
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p>© 2025 Grihaloy | Designed with ❤️ by Team Grihaloy</p>
+    <p><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a></p>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Password Toggle Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const passwordFields = document.querySelectorAll('input[type="password"]');
+    passwordFields.forEach(field => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'password-wrapper';
+
+      const icon = document.createElement('span');
+      icon.className = 'password-toggle-icon';
+      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+
+      const eyeIcon = icon.innerHTML;
+      const eyeSlashIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s-3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0 4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
+
+      field.parentNode.insertBefore(wrapper, field);
+      wrapper.appendChild(field);
+      wrapper.appendChild(icon);
+
+      icon.addEventListener('click', function () {
+        const isPassword = field.getAttribute('type') === 'password';
+        field.setAttribute('type', isPassword ? 'text' : 'password');
+        icon.innerHTML = isPassword ? eyeSlashIcon : eyeIcon;
       });
-    </script>
-    {% block scripts %}{% endblock %}
-  </body>
+    });
+  });
+</script>
+
+<!-- Extra Scripts -->
+{% block scripts %}{% endblock %}
+
+</body>
 </html>
+

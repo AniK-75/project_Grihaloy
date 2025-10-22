@@ -66,6 +66,7 @@ class PropertyListView(ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['search_form'] = PropertySearchForm(self.request.GET or None)
+        # Preserve filters across pagination
         q = self.request.GET.copy()
         if 'page' in q:
             q.pop('page')
@@ -383,3 +384,16 @@ def reject_delete_request(request, request_id):
         req.save()
         messages.warning(request, 'Delete request rejected.')
     return redirect('properties:requests')
+
+
+@login_required
+def notifications(request):
+    # Shown via the bell on the Home page
+    edit_reqs = PropertyEditRequest.objects.filter(requester=request.user).select_related('property').order_by('-created_at')
+    del_reqs = PropertyDeleteRequest.objects.filter(requester=request.user).select_related('property').order_by('-created_at')
+    account_status = 'Approved' if getattr(request.user, 'is_approved', False) or is_admin(request.user) else 'Pending'
+    return render(request, 'properties/notifications.html', {
+        'edit_requests': edit_reqs,
+        'delete_requests': del_reqs,
+        'account_status': account_status,
+    })
