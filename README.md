@@ -28,7 +28,7 @@ It provides a **streamlined rental process** — from registration to verificati
 > *(Add your screenshot below — place it inside `static/images/`)*
 
 <p align="center">
-  <img src="static/images/screenshot.png" alt="Grihaloy Homepage" width="700"/>
+  <img src="grihaloy/static/images/screenshot.png" alt="Grihaloy Homepage" width="700"/>
 </p>
 
 ---
