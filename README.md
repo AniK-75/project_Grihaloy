@@ -59,51 +59,112 @@ It provides a **streamlined rental process** — from registration to verificati
 
 ## 🏗️ Project Structure
 
-grihaloy/
+project_Grihaloy/
 │
-├── grihaloy/
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
+├── .env
+├── .gitignore
+├── db.sqlite3
+├── manage.py
+├── README.md
+├── requirements.txt
 │
-├── home/
-│   ├── views.py
-│   ├── urls.py
-│   └── templates/home/
-│       └── index.html
+├── grihaloy/ (Container folder)
+│   └── grihaloy/ (Actual Django Project folder)
+│       ├── __init__.py
+│       ├── asgi.py
+│       ├── settings.py
+│       ├── urls.py
+│       └── wsgi.py
 │
-├── users/
+├── heatmap_service/ (App)
+│   ├── migrations/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
 │   ├── models.py
-│   ├── forms.py
-│   ├── views.py
-│   └── templates/users/
-│       ├── login.html
-│       ├── register.html
-│       ├── rating_form.html
-│       └── verification_list.html
+│   ├── signals.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
 │
-├── properties/
+├── home/ (App)
+│   ├── migrations/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
 │   ├── models.py
-│   ├── views.py
-│   ├── routing.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+│
+├── properties/ (App)
+│   ├── migrations/
+│   ├── templatetags/
+│   │   ├── __init__.py
+│   │   └── notif_tags.py
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
 │   ├── consumers.py
-│   └── templates/properties/
-│       ├── property_list.html
-│       ├── property_detail.html
-│       ├── negotiation_chat.html
-│       └── my_requests.html
+│   ├── forms.py
+│   ├── models.py
+│   ├── routing.py
+│   ├── signals.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
 │
-├── static/
-│   └── images/
-│       └── logo.png
+├── users/ (App)
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
 │
 ├── media/
 │   ├── profile_pics/
-│   └── property_photos/
+│   ├── property_photos/
+│   └── default.png
 │
-├── templates/
-│   └── base.html
+├── static/
+│   └── images/
+│       ├── logo.png
+│       └── screenshot.png
 │
-├── requirements.txt
-└── manage.py
+└── templates/
+    ├── base.html
+    │
+    ├── heatmap_service/
+    │   └── heatmap.html
+    │
+    ├── home/
+    │   └── index.html
+    │
+    ├── properties/
+    │   ├── admin_requests_list.html
+    │   ├── delete_request_form.html
+    │   ├── edit_request_form.html
+    │   ├── my_negotiations.html
+    │   ├── my_requests.html
+    │   ├── negotiation_chat.html
+    │   ├── notifications.html
+    │   ├── property_confirm_delete.html
+    │   ├── property_detail.html
+    │   ├── property_form.html
+    │   ├── property_list.html
+    │   └── property_my_list.html
+    │
+    └── users/
+        ├── login.html
+        ├── profile_detail.html
+        ├── profile_edit.html
+        ├── rating_form.html
+        ├── rating_list.html
+        ├── register.html
+        ├── user_list.html
+        ├── verification_form.html
+        └── verification_list.html
 
