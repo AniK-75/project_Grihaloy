@@ -39,6 +39,7 @@
   <div class="col-lg-5">
     <div class="card border-0 shadow-sm">
       <div class="card-body">
+
         <div class="d-flex align-items-center mb-2">
           <h5 class="mb-0 text-brown">{{ property.area }}, {{ property.city }}</h5>
           <span class="badge bg-light text-dark ms-3">{{ property.get_property_type_display }}</span>
@@ -93,6 +94,17 @@
 
           {% if can_delete %}
             <a href="{% url 'properties:delete' property.pk %}" class="btn btn-brown">Delete (Admin)</a>
+          {% endif %}
+
+          {# NEW: Negotiation Buttons #}
+          {% if can_start_negotiation %}
+            <a href="{% url 'properties:start_negotiation' property.pk %}" class="btn btn-accent">Start Negotiation</a>
+          {% elif existing_negotiation_id %}
+            <a href="{% url 'properties:negotiation_chat' existing_negotiation_id %}" class="btn btn-outline-primary">Continue Negotiation</a>
+          {% endif %}
+
+          {% if property.negotiable and request.user.is_authenticated and property.owner == request.user and landlord_negotiations %}
+            <a href="{% url 'properties:my_negotiations' %}" class="btn btn-brown">View My Negotiations</a>
           {% endif %}
         </div>
       </div>
