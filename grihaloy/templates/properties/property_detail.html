@@ -1,5 +1,35 @@
 {% extends "base.html" %}
+
 {% block content %}
+<style>
+  .star-rating-widget {
+    font-size: 1.5rem;
+    color: #ccc;
+  }
+  .star-rating-widget .star {
+    cursor: pointer;
+    transition: color 0.1s ease-in-out;
+  }
+  .star-rating-widget .star:hover,
+  .star-rating-widget .star.hover {
+    color: var(--accent-color);
+  }
+  .star-rating-widget .star.selected {
+    color: var(--accent-color);
+  }
+  .avg-rating-display {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--accent-color);
+  }
+  .avg-rating-display .total-ratings {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 0.5rem;
+  }
+</style>
+
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <h3 class="mb-2 text-brown">{{ property.title }}</h3>
   <div class="d-flex gap-2">
@@ -51,6 +81,16 @@
         </div>
 
         <p class="mb-1"><strong>Price:</strong> ৳ {{ property.price|floatformat:0 }} {% if property.is_price_fixed %}<span class="text-muted">(fixed)</span>{% endif %}</p>
+
+        <div class="mb-2">
+          <span class="avg-rating-display" id="avg-rating-text">
+            ★ {{ average_rating|floatformat:1 }}
+          </span>
+          <span class="total-ratings" id="total-ratings-text">
+            ({{ total_ratings }} rating{{ total_ratings|pluralize }})
+          </span>
+        </div>
+
         <p class="mb-1"><strong>Bedrooms:</strong> {{ property.bedrooms }} &nbsp; <strong>Bathrooms:</strong> {{ property.bathrooms }}</p>
         <p class="mb-1"><strong>Size:</strong> {{ property.size_sqft }} sqft</p>
         <p class="mb-1"><strong>Address:</strong> {{ property.address }}</p>
@@ -65,6 +105,27 @@
 
         {% if property.description %}
           <div class="mb-3"><strong>Description:</strong><br>{{ property.description|linebreaksbr }}</div>
+        {% endif %}
+
+        {% if user.is_authenticated and user.role == 'RENTER' and property.owner != user and request.user.is_approved %}
+        <hr>
+          <div class="mb-3">
+            <h6 class="text-brown">Your Rating:</h6>
+            <div class="star-rating-widget" id="star-rating" data-user-rating="{{ user_rating }}">
+              {% csrf_token %}
+              <span class="star" data-value="1">★</span>
+              <span class="star" data-value="2">★</span>
+              <span class="star" data-value="3">★</span>
+              <span class="star" data-value="4">★</span>
+              <span class="star" data-value="5">★</span>
+            </div>
+            <div id="rating-message" class="form-text mt-1"></div>
+          </div>
+          <hr>
+        {% elif user.is_authenticated and user.role == 'RENTER' and property.owner != user and not request.user.is_approved %}
+          <hr>
+          <p class="text-muted fst-italic">Your account must be approved by an admin before you can rate properties.</p>
+          <hr>
         {% endif %}
 
         <div class="d-flex flex-wrap gap-2">
@@ -96,7 +157,6 @@
             <a href="{% url 'properties:delete' property.pk %}" class="btn btn-brown">Delete (Admin)</a>
           {% endif %}
 
-          {# NEW: Negotiation Buttons #}
           {% if can_start_negotiation %}
             <a href="{% url 'properties:start_negotiation' property.pk %}" class="btn btn-accent">Start Negotiation</a>
           {% elif existing_negotiation_id %}
@@ -111,4 +171,82 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ratingWidget = document.getElementById('star-rating');
+  if (!ratingWidget) {
+    return;
+  }
+
+  const stars = ratingWidget.querySelectorAll('.star');
+  let currentUserRating = parseInt(ratingWidget.dataset.userRating, 10);
+  const ratingMessageEl = document.getElementById('rating-message');
+
+  const csrfToken = ratingWidget.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+  function highlightStars(value) {
+    stars.forEach(star => {
+      star.classList.toggle('selected', star.dataset.value <= value);
+      star.classList.remove('hover');
+    });
+  }
+
+  highlightStars(currentUserRating);
+
+  stars.forEach(star => {
+    star.addEventListener('mouseover', () => {
+      stars.forEach(s => {
+        s.classList.toggle('hover', s.dataset.value <= star.dataset.value);
+      });
+    });
+
+    star.addEventListener('mouseout', () => {
+      highlightStars(currentUserRating);
+    });
+
+    star.addEventListener('click', () => {
+      const score = star.dataset.value;
+
+      if (!csrfToken) {
+        console.error("CSRF Token not found!");
+        return;
+      }
+
+      fetch("{% url 'properties:rate_property' property.pk %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `score=${score}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          currentUserRating = data.user_score;
+          highlightStars(currentUserRating);
+
+          document.getElementById('avg-rating-text').innerText = `★ ${data.new_average.toFixed(1)}`;
+          let ratingText = `(${data.new_count} rating${data.new_count === 1 ? '' : 's'})`;
+          document.getElementById('total-ratings-text').innerText = ratingText;
+
+          ratingMessageEl.innerText = 'Your rating has been saved!';
+          ratingMessageEl.style.color = 'green';
+        } else {
+          ratingMessageEl.innerText = `Error: ${data.error}`;
+          ratingMessageEl.style.color = 'red';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        ratingMessageEl.innerText = 'An error occurred. Please try again.';
+        ratingMessageEl.style.color = 'red';
+      });
+    });
+  });
+});
+</script>
 {% endblock %}
