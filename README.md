@@ -27,7 +27,7 @@ It provides a **streamlined rental process** — from registration to verificati
 
 ## 🖼️ Project Preview
 
-> *(Add your screenshot below — place it inside `static/images/`)*
+> 📸 Preview of Grihaloy in action:
 
 <p align="center">
   <img src="grihaloy/static/images/screenshot.png" alt="Grihaloy Homepage" width="700"/>
