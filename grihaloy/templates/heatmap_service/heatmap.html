@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-center mt-3">🏙️ Apartment Price Heatmap</h2>
+<div id="map" style="height: 700px; width: 100%; margin-top:20px;"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+  .legend {
+      line-height: 18px;
+      color: #555;
+      background: white;
+      padding: 8px;
+      border-radius: 5px;
+      font-size: 13px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  }
+
+  .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.8;
+  }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var map = L.map('map').setView([23.8103, 90.4125], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const areaCenters = {
+        "Mirpur-1": [23.794247860994613, 90.35407299920017],
+        "Mirpur-2": [23.805605251126064, 90.35659252099921],
+        "Mirpur-6": [23.812796273330793, 90.36305306791166],
+        "Mirpur-10": [23.80707425864373, 90.36807456682425],
+        "Pallabi": [23.83120433494365, 90.36106314292256],
+        "Shyamoli": [23.77235830904133, 90.3648781410299],
+        "Azimpur": [23.728394510704476, 90.3851335692729],
+        "Agargaon": [23.779664318148672, 90.36862176414202],
+        "Green Road": [23.748973058649284, 90.38651069621909],
+        "Dhanmondi": [23.747226534254334, 90.37543462836243],
+        "Tejgaon": [23.762179088925183, 90.39199229759193],
+        "Farmgate": [23.756949144487706, 90.3868723689056],
+        "Shahbagh": [23.740319610744912, 90.39437062139952],
+        "Ramna": [23.738223128513255, 90.40225994936337],
+        "Motijheel": [23.730527021168303, 90.41935484049279],
+        "Malibagh": [23.74648840916438, 90.41297105407016],
+        "Mohammadpur": [23.765047063493757, 90.36071428540352],
+        "New Market": [23.733362528987517, 90.3833748920775],
+        "Banglamotor": [23.74571508649814, 90.39370539407774],
+        "Baily Road": [23.741657090454463, 90.40661469831551],
+        "Karwan Bazar": [23.752324006902125, 90.39361194794341],
+        "Bijoy Sarani": [23.764459201036445, 90.38894980674664],
+        "Gulshan": [23.790216830297474, 90.41585949742142],
+        "Banani": [23.79177064016305, 90.40394585558845],
+        "Baridhara": [23.80218265478339, 90.42094944345607],
+        "Rampura": [23.76342408882387, 90.42176960003457],
+        "Badda": [23.78075216634312, 90.42732565691017],
+        "Khilgaon": [23.75627387832204, 90.46418781580331],
+        "Nikunja-2": [23.831483426079846, 90.41777116041544],
+        "Nikunja-1": [23.823824502220035, 90.41844480876539],
+        "Vatara": [23.800607400744394, 90.42911202554718],
+        "Bashundhara": [23.82031925977245, 90.44602589856825],
+        "Kuril": [23.82146918191936, 90.42331469265254],
+        "North Badda": [23.784646686770753, 90.4259817317746],
+        "Sutrapur": [23.713041795510513, 90.41980708698252],
+        "Kotwali": [23.71016632757808, 90.40778622269576],
+        "Lalbagh": [23.718040584955222, 90.38731300589943],
+        "Hazaribagh": [23.739855873680035, 90.35860621391723],
+        "Shyampur": [23.684913023076152, 90.44629820344234],
+        "Jatrabari": [23.710457961688203, 90.43448031035459],
+        "Demra": [23.719631792113255, 90.48298544773853],
+        "Malibagh": [23.746420489002364, 90.41301195521555],
+        "Kallyanpur": [23.781225509865905, 90.35940371610896],
+        "Sher-e-Bangla Nagar": [23.761808757224678, 90.37732870331618],
+        "Paltan": [23.733090559207433, 90.41190423395561],
+        "Bangshal": [23.71775305256497, 90.40056251513988],
+        "Sadarghat": [23.705385478058687, 90.41459374731689],
+        "Kamrangirchar": [23.716299287852138, 90.36819708078254],
+        "Mohakhali": [23.777304544377085, 90.40437465139279],
+        "Kurmitola": [23.876175949843663, 90.37785874038063],
+        "Uttarkhan": [23.872636029144232, 90.44822146464584],
+        "Rampura": [23.76205057814718, 90.42090437967673],
+        "Jigatola": [23.740602288953134, 90.37224361283764],
+        "Kalabagan": [23.749067259346972, 90.38260396010158],
+        "Kathalbagan": [23.747453151750207, 90.3888558010633],
+        "West Rajabazar": [23.75490679826229, 90.38144492718214],
+        "East Raja Bazar": [23.75350835726251, 90.38590980471855],
+        "Uttara": [23.875783058149473, 90.38112032751644],
+        "Shahjahanpur": [23.742758416330123, 90.42418033433363],
+
+    };
+
+
+function getColor(price) {
+    return price >= 200000 ? '#800026' :  // Dark red
+           price >= 100000 ? '#BD0026' :  // Red
+           price >= 50000  ? '#E31A1C' :  // Orange-red
+           price >= 20000  ? '#FD8D3C' :  // Orange
+           price >= 10000  ? '#FEB24C' :  // Yellow
+           price >= 5000   ? '#90EE90' :  // Light green
+                             '#31A354';   // Green
+}
+
+
+    fetch("/heatmap/get_area_data/")
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(item => {
+    const area = item.area;
+    const avg_price = item.avg_price;
+    const center = areaCenters[area];
+
+    if (center) {
+        const circle = L.circle(center, {
+            color: "black",
+            weight: 1,
+            fillColor: getColor(avg_price), // ✅ Use getColor here
+            fillOpacity: 0.6,
+            radius: 700
+        }).addTo(map);
+
+        circle.bindPopup(`<b>${area}</b><br>Avg Price: ${avg_price.toLocaleString()} BDT`);
+
+        circle.on('mouseover', function() {
+            this.setStyle({ weight: 3, fillOpacity: 0.8 });
+        });
+        circle.on('mouseout', function() {
+            this.setStyle({ weight: 1, fillOpacity: 0.6 });
+        });
+    } else {
+        console.warn(`⚠️ No coordinates found for area: ${area}`);
+    }
+});
+        })
+        .catch(error => console.error("Error loading data:", error));
+        // ✅ Add color legend
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function (map) {
+        const div = L.DomUtil.create('div', 'info legend');
+        const grades = [5000, 10000, 20000, 50000, 100000, 200000];
+
+        div.innerHTML += '<strong>Price Range (BDT)</strong><br>';
+        for (let i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+                grades[i].toLocaleString() +
+                (grades[i + 1] ? ' – ' + grades[i + 1].toLocaleString() + '<br>' : '+');
+        }
+        return div;
+    };
+    legend.addTo(map);
+});
+
+</script>
+{% endblock %}
