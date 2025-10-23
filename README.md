@@ -1,7 +1,10 @@
-<h1 align="center">🏠 Grihaloy</h1>
-
 <p align="center">
   <img src="grihaloy/static/images/logo.png" alt="Grihaloy Logo" width="180"/>
+</p>
+
+<p align="center">
+  <b>A Smart Rental Management Platform for Bangladesh</b><br>
+  Simplifying property renting through modern web technology.
 </p>
 
 <p align="center">
