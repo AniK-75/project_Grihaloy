@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <h3 class="mb-2 text-brown">My Negotiations</h3>
+  <a href="{% url 'properties:list' %}" class="btn btn-outline-secondary">Explore Properties</a>
+</div>
+
+{% if negotiations %}
+  <div class="list-group">
+    {% for nego in negotiations %}
+      <a href="{% url 'properties:negotiation_chat' nego.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="mb-1">
+            Negotiation for: {{ nego.property.title }}
+            {% if request.user.role == 'LANDLORD' %}
+              with {{ nego.renter.username }}
+            {% else %}
+              with {{ nego.landlord.username }} (Landlord)
+            {% endif %}
+          </h5>
+          <small class="text-muted">Last updated: {{ nego.updated_at|date:"M d, Y H:i" }}</small>
+        </div>
+        {% if request.user.role == 'RENTER' and not nego.seen_by_renter %}
+          <span class="badge bg-primary rounded-pill">New Message!</span>
+        {% elif request.user.role == 'LANDLORD' and not nego.seen_by_landlord %}
+          <span class="badge bg-primary rounded-pill">New Message!</span>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info text-center mt-4">
+    You have no active negotiations.
+    {% if request.user.role == 'RENTER' %}
+      <p>Explore properties and start a negotiation!</p>
+    {% elif request.user.role == 'LANDLORD' %}
+      <p>Properties marked as 'negotiable' can receive negotiation requests.</p>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
