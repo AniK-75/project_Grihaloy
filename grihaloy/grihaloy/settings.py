@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     'users',
     'home',
     'properties',
-    'heatmap_service.apps.HeatmapServiceConfig',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
