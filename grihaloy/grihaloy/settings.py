@@ -35,13 +35,13 @@ INSTALLED_APPS = [
     'users',
     'home',
     'properties',
-    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels', # NEW
 ]
 
 MIDDLEWARE = [
@@ -73,6 +73,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'grihaloy.wsgi.application'
 
+ASGI_APPLICATION = 'grihaloy.asgi.application' # NEW
+
+CHANNEL_LAYERS = { # NEW
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

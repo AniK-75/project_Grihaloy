@@ -1,26 +1,59 @@
 from django import template
-from properties.models import PropertyEditRequest, PropertyDeleteRequest
+from properties.models import Negotiation
+from django.db.models import Q
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def negotiation_notification_count(context, user):
+    if not user.is_authenticated:
+        return 0
+
+    unseen_count = 0
+    if user.role == 'RENTER':
+        unseen_count = Negotiation.objects.filter(
+            renter=user,
+            is_active=True,
+            seen_by_renter=False
+        ).count()
+    elif user.role == 'LANDLORD':
+        unseen_count = Negotiation.objects.filter(
+            landlord=user,
+            is_active=True,
+            seen_by_landlord=False
+        ).count()
+    return unseen_count
+
 
 @register.simple_tag(takes_context=True)
 def notification_count(context):
     """
-    Returns number of reviewed outcomes (approved/rejected) for the current user.
-    Pending requests are NOT counted.
-    Works for both LANDLORD and RENTER.
+    Returns the total notification count for the logged-in user,
+    including property edit/delete requests ONLY.
+    Negotiation messages are handled by 'negotiation_notification_count'.
     """
-    request = context.get('request')
-    user = getattr(request, 'user', None)
-    if not user or not user.is_authenticated:
+    user = context['request'].user
+    if not user.is_authenticated:
         return 0
 
-    edit_count = PropertyEditRequest.objects.filter(
-        requester=user, status__in=['approved', 'rejected']
-    ).count()
+    total_count = 0
 
-    del_count = PropertyDeleteRequest.objects.filter(
-        requester=user, status__in=['approved', 'rejected']
-    ).count()
+    # Existing notification logic (edit/delete requests)
+    if user.role == 'RENTER' or user.role == 'LANDLORD':
+        from properties.models import PropertyEditRequest, PropertyDeleteRequest
+        total_count += PropertyEditRequest.objects.filter(
+            requester=user,
+            status__in=['approved', 'rejected'],
+            seen_by_requester=False
+        ).count()
+        total_count += PropertyDeleteRequest.objects.filter(
+            requester=user,
+            status__in=['approved', 'rejected'],
+            seen_by_requester=False
+        ).count()
 
-    return edit_count + del_count
+    # --- FIX: REMOVED the line below that was double-counting ---
+    # total_count += negotiation_notification_count(context, user)
+
+    return total_count
