@@ -6,6 +6,7 @@ from .views import (
     property_photo_delete, request_edit, request_delete,
     edit_request_list, approve_edit_request, reject_edit_request,
     approve_delete_request, reject_delete_request, notifications,
+    start_negotiation, negotiation_chat, my_negotiations # NEW
 )
 
 app_name = 'properties'
@@ -32,4 +33,9 @@ urlpatterns = [
     path('requests/delete/<uuid:request_id>/reject/', reject_delete_request, name='reject_delete_request'),
 
     path('notifications/', notifications, name='notifications'),
+
+    # NEW: Negotiation Paths
+    path('<uuid:pk>/negotiate/', start_negotiation, name='start_negotiation'),
+    path('negotiation/<uuid:pk>/', negotiation_chat, name='negotiation_chat'),
+    path('my-negotiations/', my_negotiations, name='my_negotiations'),
 ]

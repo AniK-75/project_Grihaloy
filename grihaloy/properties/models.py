@@ -10,6 +10,7 @@ PROPERTY_TYPE_CHOICES = [
     ('commercial', 'Commercial'),
 ]
 
+
 class Property(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='properties')
@@ -33,6 +34,8 @@ class Property(models.Model):
 
     owner_can_edit = models.BooleanField(default=False)
     last_owner_edit_at = models.DateTimeField(null=True, blank=True)
+
+    negotiable = models.BooleanField(default=False, help_text="Allow renters to negotiate price via chat.")  # NEW
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -67,14 +70,17 @@ EDIT_STATUS = [
     ('rejected', 'Rejected'),
 ]
 
+
 class PropertyEditRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='edit_requests')
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='property_edit_requests')
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                  related_name='property_edit_requests')
     reason = models.TextField()
     status = models.CharField(max_length=10, choices=EDIT_STATUS, default='pending')
     admin_note = models.TextField(blank=True)
-    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='property_edit_reviews')
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='property_edit_reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     # NEW: mark whether requester saw the outcome
@@ -89,12 +95,15 @@ class PropertyEditRequest(models.Model):
 
 class PropertyDeleteRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    property = models.ForeignKey(Property, on_delete=models.SET_NULL, null=True, blank=True, related_name='delete_requests')
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='property_delete_requests')
+    property = models.ForeignKey(Property, on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name='delete_requests')
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                  related_name='property_delete_requests')
     reason = models.TextField()
     status = models.CharField(max_length=10, choices=EDIT_STATUS, default='pending')
     admin_note = models.TextField(blank=True)
-    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='property_delete_reviews')
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='property_delete_reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     # NEW: mark whether requester saw the outcome
@@ -105,3 +114,47 @@ class PropertyDeleteRequest(models.Model):
 
     def __str__(self):
         return f'DeleteRequest({self.property and self.property.title}) by {self.requester} [{self.status}]'
+
+
+# NEW MODELS FOR NEGOTIATION
+class Negotiation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='negotiations')
+    renter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='started_negotiations')
+    landlord = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                 related_name='received_negotiations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True, help_text="Is this negotiation still open?")
+
+    # NEW: Notification tracking
+    seen_by_landlord = models.BooleanField(default=False, help_text="Landlord has seen the latest message.")
+    seen_by_renter = models.BooleanField(default=False, help_text="Renter has seen the latest message.")
+
+    class Meta:
+        unique_together = ('property', 'renter')  # A renter can only have one negotiation per property
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"Negotiation for {self.property.title} between {self.renter.username} and {self.landlord.username}"
+
+
+class Message(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    negotiation = models.ForeignKey(Negotiation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True, help_text="The time the message was originally created.")
+
+    # --- START MODIFIED BLOCK ---
+    updated_at = models.DateTimeField(auto_now=True, help_text="The time the message was last edited.")
+    is_edited = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+
+    # --- END MODIFIED BLOCK ---
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"Message from {self.sender.username} in {self.negotiation}"

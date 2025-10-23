@@ -26,6 +26,7 @@ class PropertyForm(forms.ModelForm):
             'address', 'area', 'city',
             'property_type', 'bedrooms', 'bathrooms', 'size_sqft',
             'price', 'is_price_fixed', 'is_active',
+            'negotiable' # <-- FIX: Added 'negotiable'
         ]
 
     def __init__(self, *args, **kwargs):
