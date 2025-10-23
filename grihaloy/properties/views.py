@@ -8,9 +8,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-
+# FIX: Import Negotiation and Message models
 from .forms import PropertyForm, PropertySearchForm, EditRequestForm, DeleteRequestForm
-from .models import Property, PropertyPhoto, PropertyEditRequest, PropertyDeleteRequest
+from .models import Property, PropertyPhoto, PropertyEditRequest, PropertyDeleteRequest, Negotiation, Message
 
 
 def is_admin(user):
@@ -19,6 +19,10 @@ def is_admin(user):
 
 def is_landlord(user):
     return getattr(user, 'role', '') == 'LANDLORD'
+
+
+def is_renter(user):  # NEW
+    return getattr(user, 'role', '') == 'RENTER'
 
 
 class PropertyListView(ListView):
@@ -92,10 +96,28 @@ class PropertyDetailView(DetailView):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
         prop = self.object
-        ctx['can_edit'] = user.is_authenticated and ((prop.owner_id == user.id and prop.owner_can_edit) or is_admin(user))
+        ctx['can_edit'] = user.is_authenticated and (
+                    (prop.owner_id == user.id and prop.owner_can_edit) or is_admin(user))
         ctx['can_request_edit'] = user.is_authenticated and (prop.owner_id == user.id) and not prop.owner_can_edit
         ctx['can_toggle'] = user.is_authenticated and ((prop.owner_id == user.id) or is_admin(user))
         ctx['can_delete'] = user.is_authenticated and is_admin(user)
+
+        # NEW: Negotiation related context
+        ctx['can_start_negotiation'] = False
+        ctx['existing_negotiation_id'] = None
+        if user.is_authenticated and is_renter(user) and prop.negotiable and prop.is_active and prop.owner != user:
+            negotiation = Negotiation.objects.filter(property=prop, renter=user).first()
+            if negotiation:
+                ctx['existing_negotiation_id'] = negotiation.pk
+            else:
+                ctx['can_start_negotiation'] = True
+        elif user.is_authenticated and prop.owner == user and prop.negotiable:
+            # Landlord can see if there are negotiations for their property
+            ctx['has_active_negotiations_as_landlord'] = Negotiation.objects.filter(property=prop,
+                                                                                    is_active=True).exists()
+            ctx['landlord_negotiations'] = Negotiation.objects.filter(property=prop, is_active=True).order_by(
+                '-updated_at')
+
         return ctx
 
 
@@ -120,7 +142,7 @@ class OwnerOrAdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         prop = self.get_object()
         return self.request.user.is_authenticated and (
-            (prop.owner_id == self.request.user.id and prop.owner_can_edit) or is_admin(self.request.user)
+                (prop.owner_id == self.request.user.id and prop.owner_can_edit) or is_admin(self.request.user)
         )
 
 
@@ -141,7 +163,8 @@ class PropertyCreateView(LandlordOrAdminRequiredMixin, LoginRequiredMixin, Creat
         form = self.get_form()
         images = request.FILES.getlist('images')
         if not images:
-            return self.render_to_response(self.get_context_data(form=form, photo_error='Please upload at least one photo.'))
+            return self.render_to_response(
+                self.get_context_data(form=form, photo_error='Please upload at least one photo.'))
         if form.is_valid():
             return self.forms_valid(form, images)
         return self.render_to_response(self.get_context_data(form=form))
@@ -259,7 +282,8 @@ def request_edit(request, pk):
         messages.info(request, 'Editing is already unlocked.')
         return redirect('properties:edit', pk=prop.pk)
 
-    existing_pending = PropertyEditRequest.objects.filter(property=prop, requester=request.user, status='pending').first()
+    existing_pending = PropertyEditRequest.objects.filter(property=prop, requester=request.user,
+                                                          status='pending').first()
     if request.method == 'POST':
         form = EditRequestForm(request.POST)
         if form.is_valid():
@@ -283,7 +307,8 @@ def request_delete(request, pk):
     prop = get_object_or_404(Property, pk=pk)
     if prop.owner_id != request.user.id:
         return HttpResponseForbidden('Only the owner can request deletion.')
-    existing_pending = PropertyDeleteRequest.objects.filter(property=prop, requester=request.user, status='pending').first()
+    existing_pending = PropertyDeleteRequest.objects.filter(property=prop, requester=request.user,
+                                                            status='pending').first()
     if request.method == 'POST':
         form = DeleteRequestForm(request.POST)
         if form.is_valid():
@@ -356,7 +381,10 @@ def approve_delete_request(request, request_id):
         return redirect('properties:requests')
     if request.method == 'POST':
         note = request.POST.get('admin_note', '').strip()
+        # --- START FIX ---
+        # The line below was: req.status =.approved'
         req.status = 'approved'
+        # --- END FIX ---
         req.admin_note = note
         req.reviewed_by = request.user
         req.reviewed_at = timezone.now()
@@ -384,10 +412,13 @@ def reject_delete_request(request, request_id):
     return redirect('properties:requests')
 
 
+# --- START MODIFIED 'notifications' VIEW ---
 @login_required
 def notifications(request):
     """
-    Show only approved/rejected outcomes so it matches the navbar badge logic.
+    Show all notifications:
+    1. Approved/rejected edit/delete requests.
+    2. Unread negotiation messages.
     """
     edit_requests = PropertyEditRequest.objects.filter(
         requester=request.user,
@@ -401,8 +432,116 @@ def notifications(request):
 
     account_status = 'Approved' if getattr(request.user, 'is_approved', False) or is_admin(request.user) else 'Pending'
 
+    # FIX: Query for unseen negotiations to display them on the page
+    unseen_negotiations = []
+    if is_renter(request.user):
+        unseen_negotiations = Negotiation.objects.filter(
+            renter=request.user,
+            is_active=True,
+            seen_by_renter=False
+        ).select_related('property', 'landlord').order_by('-updated_at')
+    elif is_landlord(request.user):
+        unseen_negotiations = Negotiation.objects.filter(
+            landlord=request.user,
+            is_active=True,
+            seen_by_landlord=False
+        ).select_related('property', 'renter').order_by('-updated_at')
+    # END FIX
+
+    # Mark edit/delete notifications as seen (this is correct)
+    # DO NOT mark negotiations as seen here. That happens in the chat view.
+    PropertyEditRequest.objects.filter(requester=request.user, status__in=['approved', 'rejected'],
+                                       seen_by_requester=False).update(seen_by_requester=True)
+    PropertyDeleteRequest.objects.filter(requester=request.user, status__in=['approved', 'rejected'],
+                                         seen_by_requester=False).update(seen_by_requester=True)
+
     return render(request, 'properties/notifications.html', {
         'edit_requests': edit_requests,
         'delete_requests': delete_requests,
         'account_status': account_status,
+        'unseen_negotiations': unseen_negotiations,  # FIX: Pass new variable to template
+    })
+
+
+# --- END MODIFIED 'notifications' VIEW ---
+
+# NEW: Negotiation Views
+@login_required
+@user_passes_test(is_renter)
+def start_negotiation(request, pk):
+    prop = get_object_or_404(Property, pk=pk)
+
+    if not prop.negotiable:
+        messages.error(request, 'This property is not open for negotiation.')
+        return redirect('properties:detail', pk=prop.pk)
+
+    if prop.owner == request.user:
+        messages.error(request, "You cannot negotiate on your own property.")
+        return redirect('properties:detail', pk=prop.pk)
+
+    negotiation, created = Negotiation.objects.get_or_create(
+        property=prop,
+        renter=request.user,
+        defaults={
+            'landlord': prop.owner,
+            'is_active': True,
+            'seen_by_landlord': False,  # New negotiation is unseen by landlord
+            'seen_by_renter': True,  # Renter just created it, so they've seen it
+        }
+    )
+
+    if created:
+        messages.success(request, 'Negotiation started! You can now chat with the landlord.')
+    else:
+        messages.info(request, 'You already have an active negotiation for this property.')
+
+    return redirect('properties:negotiation_chat', pk=negotiation.pk)
+
+
+@login_required
+def negotiation_chat(request, pk):
+    negotiation = get_object_or_404(Negotiation.objects.select_related('property__owner', 'renter'), pk=pk)
+
+    if not (request.user == negotiation.renter or request.user == negotiation.landlord):
+        return HttpResponseForbidden('You are not a participant in this negotiation.')
+
+    messages_in_chat = negotiation.messages.select_related('sender').all()
+
+    # Mark as seen when entering the chat
+    if request.user == negotiation.landlord:
+        if not negotiation.seen_by_landlord:
+            negotiation.seen_by_landlord = True
+            negotiation.save(update_fields=['seen_by_landlord'])
+    elif request.user == negotiation.renter:
+        if not negotiation.seen_by_renter:
+            negotiation.seen_by_renter = True
+            negotiation.save(update_fields=['seen_by_renter'])
+
+    return render(request, 'properties/negotiation_chat.html', {
+        'negotiation': negotiation,
+        'messages': messages_in_chat,
+        'current_user': request.user,
+    })
+
+
+@login_required
+def my_negotiations(request):
+    if is_landlord(request.user):
+        negotiations = Negotiation.objects.filter(landlord=request.user, is_active=True).select_related('property',
+                                                                                                        'renter').order_by(
+            '-updated_at')
+        unseen_count = Negotiation.objects.filter(landlord=request.user, is_active=True, seen_by_landlord=False).count()
+    elif is_renter(request.user):
+        negotiations = Negotiation.objects.filter(renter=request.user, is_active=True).select_related('property',
+                                                                                                      'landlord').order_by(
+            '-updated_at')
+        unseen_count = Negotiation.objects.filter(renter=request.user, is_active=True, seen_by_renter=False).count()
+    else:
+        negotiations = []
+        unseen_count = 0
+        messages.info(request, "Only renters and landlords can have negotiations.")
+
+    return render(request, 'properties/my_negotiations.html', {
+        'negotiations': negotiations,
+        'unseen_negotiations_count': unseen_count,
     })
