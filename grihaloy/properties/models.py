@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 import uuid
+# NEW IMPORTS
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 PROPERTY_TYPE_CHOICES = [
     ('apartment', 'Apartment'),
@@ -35,7 +37,7 @@ class Property(models.Model):
     owner_can_edit = models.BooleanField(default=False)
     last_owner_edit_at = models.DateTimeField(null=True, blank=True)
 
-    negotiable = models.BooleanField(default=False, help_text="Allow renters to negotiate price via chat.")  # NEW
+    negotiable = models.BooleanField(default=False, help_text="Allow renters to negotiate price via chat.")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -83,7 +85,6 @@ class PropertyEditRequest(models.Model):
                                     related_name='property_edit_reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
-    # NEW: mark whether requester saw the outcome
     seen_by_requester = models.BooleanField(default=False, help_text="Requester has seen the final decision.")
 
     class Meta:
@@ -106,7 +107,6 @@ class PropertyDeleteRequest(models.Model):
                                     related_name='property_delete_reviews')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
-    # NEW: mark whether requester saw the outcome
     seen_by_requester = models.BooleanField(default=False, help_text="Requester has seen the final decision.")
 
     class Meta:
@@ -116,7 +116,6 @@ class PropertyDeleteRequest(models.Model):
         return f'DeleteRequest({self.property and self.property.title}) by {self.requester} [{self.status}]'
 
 
-# NEW MODELS FOR NEGOTIATION
 class Negotiation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='negotiations')
@@ -127,12 +126,11 @@ class Negotiation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True, help_text="Is this negotiation still open?")
 
-    # NEW: Notification tracking
     seen_by_landlord = models.BooleanField(default=False, help_text="Landlord has seen the latest message.")
     seen_by_renter = models.BooleanField(default=False, help_text="Renter has seen the latest message.")
 
     class Meta:
-        unique_together = ('property', 'renter')  # A renter can only have one negotiation per property
+        unique_together = ('property', 'renter')
         ordering = ['-updated_at']
 
     def __str__(self):
@@ -146,15 +144,35 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True, help_text="The time the message was originally created.")
 
-    # --- START MODIFIED BLOCK ---
     updated_at = models.DateTimeField(auto_now=True, help_text="The time the message was last edited.")
     is_edited = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-
-    # --- END MODIFIED BLOCK ---
 
     class Meta:
         ordering = ['timestamp']
 
     def __str__(self):
         return f"Message from {self.sender.username} in {self.negotiation}"
+
+
+# --- START NEW MODEL ---
+class Rating(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='ratings')
+
+    # --- START FIX ---
+    # I've changed 'given_ratings' to 'property_ratings' to make it unique
+    renter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='property_ratings')
+    # --- END FIX ---
+
+    score = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # A renter can only rate a property once
+        unique_together = ('property', 'renter')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.renter.username} rated {self.property.title} as {self.score}"
+# --- END NEW MODEL ---

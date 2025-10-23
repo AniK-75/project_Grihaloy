@@ -6,7 +6,8 @@ from .views import (
     property_photo_delete, request_edit, request_delete,
     edit_request_list, approve_edit_request, reject_edit_request,
     approve_delete_request, reject_delete_request, notifications,
-    start_negotiation, negotiation_chat, my_negotiations # NEW
+    start_negotiation, negotiation_chat, my_negotiations,
+    save_property_rating  # <-- NEW IMPORT
 )
 
 app_name = 'properties'
@@ -34,8 +35,10 @@ urlpatterns = [
 
     path('notifications/', notifications, name='notifications'),
 
-    # NEW: Negotiation Paths
     path('<uuid:pk>/negotiate/', start_negotiation, name='start_negotiation'),
     path('negotiation/<uuid:pk>/', negotiation_chat, name='negotiation_chat'),
     path('my-negotiations/', my_negotiations, name='my_negotiations'),
+
+    # --- NEW RATING URL ---
+    path('<uuid:pk>/rate/', save_property_rating, name='rate_property'),
 ]
