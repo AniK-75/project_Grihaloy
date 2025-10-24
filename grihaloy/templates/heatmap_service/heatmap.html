@@ -1,6 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
 <h2 class="text-center mt-3">🏙️ Apartment Price Heatmap</h2>
+
+<!-- 🔍 Search Bar -->
+<div class="search-container text-center mt-3 mb-3">
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Search area (e.g., Gulshan, Dhanmondi)"
+    class="form-control d-inline-block"
+    style="width: 300px; display: inline-block;"
+  >
+  <button id="searchButton" class="btn" style="background-color: #3d3735; color: white; border: none;">
+    Search
+  </button>
+  <button id="resetButton" class="btn" style="background-color: #6c757d; color: white; border: none;">
+    Reset
+  </button>
+</div>
+
+
 <div id="map" style="height: 700px; width: 100%; margin-top:20px;"></div>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -23,6 +42,17 @@
       float: left;
       margin-right: 8px;
       opacity: 0.8;
+  }
+
+  .search-container input {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+  }
+
+  .search-container button {
+      padding: 8px 15px;
+      border-radius: 6px;
   }
 </style>
 
@@ -76,7 +106,6 @@ document.addEventListener("DOMContentLoaded", function() {
         "Shyampur": [23.684913023076152, 90.44629820344234],
         "Jatrabari": [23.710457961688203, 90.43448031035459],
         "Demra": [23.719631792113255, 90.48298544773853],
-        "Malibagh": [23.746420489002364, 90.41301195521555],
         "Kallyanpur": [23.781225509865905, 90.35940371610896],
         "Sher-e-Bangla Nagar": [23.761808757224678, 90.37732870331618],
         "Paltan": [23.733090559207433, 90.41190423395561],
@@ -86,67 +115,62 @@ document.addEventListener("DOMContentLoaded", function() {
         "Mohakhali": [23.777304544377085, 90.40437465139279],
         "Kurmitola": [23.876175949843663, 90.37785874038063],
         "Uttarkhan": [23.872636029144232, 90.44822146464584],
-        "Rampura": [23.76205057814718, 90.42090437967673],
         "Jigatola": [23.740602288953134, 90.37224361283764],
         "Kalabagan": [23.749067259346972, 90.38260396010158],
         "Kathalbagan": [23.747453151750207, 90.3888558010633],
         "West Rajabazar": [23.75490679826229, 90.38144492718214],
-        "East Raja Bazar": [23.75350835726251, 90.38590980471855],
+        "East RajaBazar": [23.75350835726251, 90.38590980471855],
         "Uttara": [23.875783058149473, 90.38112032751644],
         "Shahjahanpur": [23.742758416330123, 90.42418033433363],
-
     };
 
+    function getColor(price) {
+        return price >= 200000 ? '#800026' :
+               price >= 100000 ? '#BD0026' :
+               price >= 50000  ? '#E31A1C' :
+               price >= 20000  ? '#FD8D3C' :
+               price >= 10000  ? '#FEB24C' :
+               price >= 5000   ? '#90EE90' :
+                                 '#31A354';
+    }
 
-function getColor(price) {
-    return price >= 200000 ? '#800026' :  // Dark red
-           price >= 100000 ? '#BD0026' :  // Red
-           price >= 50000  ? '#E31A1C' :  // Orange-red
-           price >= 20000  ? '#FD8D3C' :  // Orange
-           price >= 10000  ? '#FEB24C' :  // Yellow
-           price >= 5000   ? '#90EE90' :  // Light green
-                             '#31A354';   // Green
-}
-
+    let areaCircles = {};
 
     fetch("/heatmap/get_area_data/")
         .then(response => response.json())
         .then(data => {
             data.forEach(item => {
-    const area = item.area;
-    const avg_price = item.avg_price;
-    const center = areaCenters[area];
+                const area = item.area;
+                const avg_price = item.avg_price;
+                const center = areaCenters[area];
+                if (center) {
+                    const circle = L.circle(center, {
+                        color: "black",
+                        weight: 1,
+                        fillColor: getColor(avg_price),
+                        fillOpacity: 0.6,
+                        radius: 700
+                    }).addTo(map);
 
-    if (center) {
-        const circle = L.circle(center, {
-            color: "black",
-            weight: 1,
-            fillColor: getColor(avg_price), // ✅ Use getColor here
-            fillOpacity: 0.6,
-            radius: 700
-        }).addTo(map);
+                    circle.bindPopup(`<b>${area}</b><br>Avg Price: ${avg_price.toLocaleString()} BDT`);
+                    areaCircles[area.toLowerCase()] = circle;
 
-        circle.bindPopup(`<b>${area}</b><br>Avg Price: ${avg_price.toLocaleString()} BDT`);
-
-        circle.on('mouseover', function() {
-            this.setStyle({ weight: 3, fillOpacity: 0.8 });
-        });
-        circle.on('mouseout', function() {
-            this.setStyle({ weight: 1, fillOpacity: 0.6 });
-        });
-    } else {
-        console.warn(`⚠️ No coordinates found for area: ${area}`);
-    }
-});
+                    circle.on('mouseover', function() {
+                        this.setStyle({ weight: 3, fillOpacity: 0.8 });
+                    });
+                    circle.on('mouseout', function() {
+                        this.setStyle({ weight: 1, fillOpacity: 0.6 });
+                    });
+                }
+            });
         })
         .catch(error => console.error("Error loading data:", error));
-        // ✅ Add color legend
-    const legend = L.control({ position: 'bottomright' });
 
-    legend.onAdd = function (map) {
+    // 🧭 Add legend
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = function(map) {
         const div = L.DomUtil.create('div', 'info legend');
         const grades = [5000, 10000, 20000, 50000, 100000, 200000];
-
         div.innerHTML += '<strong>Price Range (BDT)</strong><br>';
         for (let i = 0; i < grades.length; i++) {
             div.innerHTML +=
@@ -157,7 +181,26 @@ function getColor(price) {
         return div;
     };
     legend.addTo(map);
-});
 
+    // 🔍 Search Functionality
+    document.getElementById('searchButton').addEventListener('click', function() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        if (!query) return;
+
+        if (areaCircles[query]) {
+            const circle = areaCircles[query];
+            const coords = circle.getLatLng();
+            map.setView(coords, 15);
+            circle.openPopup();
+        } else {
+            alert("Area not found or registered! Try again.");
+        }
+    });
+
+    document.getElementById('resetButton').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        map.setView([23.8103, 90.4125], 12);
+    });
+});
 </script>
 {% endblock %}
