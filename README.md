@@ -158,112 +158,112 @@ python3 manage.py runserver
 
 ## 🏗️ Project Structure
 
-project_Grihaloy/
-│
-├── .env
-├── .gitignore
-├── db.sqlite3
-├── manage.py
-├── README.md
-├── requirements.txt
-│
-├── grihaloy/ (Container folder)
-│   └── grihaloy/ (Actual Django Project folder)
-│       ├── __init__.py
-│       ├── asgi.py
-│       ├── settings.py
-│       ├── urls.py
-│       └── wsgi.py
-│
-├── heatmap_service/ (App)
-│   ├── migrations/
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── models.py
-│   ├── signals.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-│
-├── home/ (App)
-│   ├── migrations/
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── models.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-│
-├── properties/ (App)
-│   ├── migrations/
-│   ├── templatetags/
-│   │   ├── __init__.py
-│   │   └── notif_tags.py
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── consumers.py
-│   ├── forms.py
-│   ├── models.py
-│   ├── routing.py
-│   ├── signals.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-│
-├── users/ (App)
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── forms.py
-│   ├── models.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-│
-├── media/
-│   ├── profile_pics/
-│   ├── property_photos/
-│   └── default.png
-│
-├── static/
-│   └── images/
-│       ├── logo.png
-│       └── screenshot.png
-│
-└── templates/
-    ├── base.html
-    │
-    ├── heatmap_service/
-    │   └── heatmap.html
-    │
-    ├── home/
-    │   └── index.html
-    │
-    ├── properties/
-    │   ├── admin_requests_list.html
-    │   ├── delete_request_form.html
-    │   ├── edit_request_form.html
-    │   ├── my_negotiations.html
-    │   ├── my_requests.html
-    │   ├── negotiation_chat.html
-    │   ├── notifications.html
-    │   ├── property_confirm_delete.html
-    │   ├── property_detail.html
-    │   ├── property_form.html
-    │   ├── property_list.html
-    │   └── property_my_list.html
-    │
-    └── users/
-        ├── login.html
-        ├── profile_detail.html
-        ├── profile_edit.html
-        ├── rating_form.html
-        ├── rating_list.html
-        ├── register.html
-        ├── user_list.html
-        ├── verification_form.html
-        └── verification_list.html
+project_Grihaloy
+¦   .env
+¦   file_structure.txt
+¦   README.md
+¦   
++---.idea
++---.venv
++---grihaloy
+    ¦   .gitignore
+    ¦   db.sqlite3
+    ¦   manage.py
+    ¦   requirements.txt
+    ¦   
+    +---grihaloy
+    ¦       asgi.py
+    ¦       settings.py
+    ¦       urls.py
+    ¦       wsgi.py
+    ¦       __init__.py
+    ¦       
+    +---heatmap_service
+    ¦       admin.py
+    ¦       apps.py
+    ¦       models.py
+    ¦       signals.py
+    ¦       tests.py
+    ¦       urls.py
+    ¦       views.py
+    ¦       __init__.py
+    ¦       
+    +---home
+    ¦       admin.py
+    ¦       apps.py
+    ¦       models.py
+    ¦       tests.py
+    ¦       urls.py
+    ¦       views.py
+    ¦       __init__.py
+    ¦       
+    +---media
+    ¦   ¦   default.png
+    ¦   ¦   
+    ¦   +---profile_pics
+    ¦   +---property_photos
+    +---properties
+    ¦   ¦   admin.py
+    ¦   ¦   apps.py
+    ¦   ¦   consumers.py
+    ¦   ¦   forms.py
+    ¦   ¦   models.py
+    ¦   ¦   routing.py
+    ¦   ¦   signals.py
+    ¦   ¦   tests.py
+    ¦   ¦   urls.py
+    ¦   ¦   views.py
+    ¦   ¦   __init__.py
+    ¦   ¦   
+    ¦   +---templatetags
+    ¦           notif_tags.py
+    ¦           
+    +---static
+    ¦   +---images
+    ¦           logo.png
+    ¦           screenshot.png
+    ¦           
+    +---templates
+    ¦   ¦   base.html
+    ¦   ¦   
+    ¦   +---heatmap_service
+    ¦   ¦       heatmap.html
+    ¦   ¦       
+    ¦   +---home
+    ¦   ¦       index.html
+    ¦   ¦       
+    ¦   +---properties
+    ¦   ¦       admin_requests_list.html
+    ¦   ¦       delete_request_form.html
+    ¦   ¦       edit_request_form.html
+    ¦   ¦       my_negotiations.html
+    ¦   ¦       my_requests.html
+    ¦   ¦       negotiation_chat.html
+    ¦   ¦       notifications.html
+    ¦   ¦       property_confirm_delete.html
+    ¦   ¦       property_detail.html
+    ¦   ¦       property_form.html
+    ¦   ¦       property_list.html
+    ¦   ¦       property_my_list.html
+    ¦   ¦       
+    ¦   +---users
+    ¦           login.html
+    ¦           profile_detail.html
+    ¦           profile_edit.html
+    ¦           rating_form.html
+    ¦           rating_list.html
+    ¦           register.html
+    ¦           user_list.html
+    ¦           verification_form.html
+    ¦           verification_list.html
+    ¦           
+    +---users
+            admin.py
+            apps.py
+            forms.py
+            models.py
+            tests.py
+            urls.py
+            views.py
+            __init__.py
 
